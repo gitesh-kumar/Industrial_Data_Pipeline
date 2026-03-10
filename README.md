@@ -3,7 +3,7 @@
 A local-first, privacy-compliant data engineering pipeline designed for **Industrie 4.0** environments.
 
 ## 🌟 Project Overview
-This project demonstrates a full-stack Data Engineering solution that processes raw factory sensor data into actionable financial insights. The unique value proposition is the **Data Sovereignty**—using a local LLM (Llama 3) to query sensitive KPIs without ever sending data to a cloud provider (OpenAI/Google).
+This project demonstrates a full-stack Data Engineering solution that processes raw factory sensor data into actionable financial insights. The unique value proposition is the **Data Sovereignty** whicb is using a local LLM (Llama 3) to query sensitive KPIs without ever sending data to a cloud provider (OpenAI/Google).
 
 
 
