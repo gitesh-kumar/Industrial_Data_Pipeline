@@ -20,7 +20,6 @@ Instead of a simple chatbot, this project uses a **ReAct (Reason/Act) SQL Agent*
 - **Logic:** The agent autonomously writes and executes SQL queries against the Gold Layer to answer complex questions like: *"What is the percentage of loss of the highest-loss machine relative to the total?"*
 
 ## 🚀 Key Professional Features
-- **Python 3.12 Optimized:** Migrated from 3.8 to 3.12 with modern type hinting.
 - **Local Inference:** 100% offline. No API keys or external data leaks.
 - **Robust Error Handling:** Implemented ReAct loops to handle complex multi-step analytical queries.
 
