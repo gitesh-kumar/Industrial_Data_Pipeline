@@ -1,41 +1,48 @@
 import pandas as pd
 from sqlalchemy import create_engine
+from energy_api import EnergyMarketAPI # Importing our new API
 
 engine = create_engine('sqlite:///factory_lakehouse.db')
 
-def generate_gold_metrics():
-    # This SQL query uses Common Table Expression to calculate the financial loss of running a vibrating/hot machine.
-    gold_query = """
-    WITH base_metrics AS (
-        SELECT 
-            machine_id,
-            AVG(temp_c) as avg_temp,
-            AVG(vibration_rms) as avg_vibration,
-            COUNT(*) as reading_count
-        FROM silver_telemetry
-        WHERE quality_flag = 'PASS'
-        GROUP BY machine_id
-    )
+def generate_financial_gold():
+    # 1. Get current Energy Price from our "External" Source
+    api = EnergyMarketAPI()
+    market_data = api.get_current_price()
+    current_price_eur = market_data['price']
+    
+    print(f"⚡ Current Energy Price: {current_price_eur} EUR/MWh")
+
+    # 2. Advanced SQL: Calculate Energy Cost per Machine
+    # We convert kW to MWh and multiply by the current market rate
+    query = f"""
     SELECT 
         machine_id,
-        avg_temp,
-        avg_vibration,
-        -- Business Logic: Assume every 1 unit of vibration over 3.0 
-        -- costs $50/hour in wasted energy and wear.
-        ROUND((avg_vibration - 3.0) * 50, 2) as estimated_hourly_loss_euro
-    FROM base_metrics
-    WHERE avg_vibration > 3.0;
+        AVG(power_kw) as avg_power_usage,
+        AVG(temp_c) as avg_temp,
+        -- Calculate Hourly Cost: (kW / 1000) * Price_per_MWh
+        ROUND((AVG(power_kw) / 1000) * {current_price_eur}, 4) as hourly_energy_cost_eur,
+        -- Identify "Waste" if Temp is high (Inefficient cooling)
+        CASE 
+            WHEN AVG(temp_c) > 60 THEN 'INEFFICIENT'
+            ELSE 'OPTIMAL'
+        END as efficiency_status
+    FROM silver_telemetry
+    GROUP BY machine_id
     """
     
-    print("🏆 GOLD LAYER: FINANCIAL IMPACT ANALYSIS")
-    df = pd.read_sql(gold_query, engine)
+    df = pd.read_sql(query, engine)
     
-    if df.empty:
-        print("All machines operating within optimal parameters.")
-    else:
-        print(df)
-        # Saving to the table for Power BI
-        df.to_sql('gold_financial_impact', engine, if_exists='replace', index=False)
+    # 3. Add the "Profitability" recommendation
+    df['recommendation'] = df.apply(
+        lambda x: "SHUTDOWN" if x['efficiency_status'] == 'INEFFICIENT' and current_price_eur > 200 
+        else "CONTINUE", axis=1
+    )
+
+    print("\n🏆 GOLD LAYER: OPERATIONAL PROFITABILITY")
+    print(df)
+    
+    # Save to SQL for the Dashboard
+    df.to_sql('gold_operations_status', engine, if_exists='replace', index=False)
 
 if __name__ == "__main__":
-    generate_gold_metrics()
+    generate_financial_gold()

@@ -1,4 +1,15 @@
+# Environments
 venv/
-__pycache__/
+.env
+
+# Databases
 *.db
-.ipynb_checkpoints/
+*.sqlite
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
