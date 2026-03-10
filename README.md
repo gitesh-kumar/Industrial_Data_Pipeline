@@ -1,42 +1,34 @@
-# 🏭 Industrial IoT: Predictive Maintenance & Financial Lakehouse
+# 🏭 Private Industrial Data AI Pipeline
 
-This project is a **Full-Stack Data Engineering Pipeline** designed to monitor factory machinery in real-time. It translates raw mechanical telemetry (vibration and temperature) into **Real-Time Financial Risk** by correlating sensor anomalies with live energy market costs.
+A local-first, privacy-compliant data engineering pipeline designed for **Industrie 4.0** environments.
 
-
-
-## 🛠️ System Architecture (Medallion)
-The pipeline follows a modular **Medallion Architecture** to ensure data quality and lineage:
-
-* **Bronze Layer (Ingestion):** Multi-threaded simulation of IoT sensors (Compressors, Pumps, Turbines) capturing high-frequency telemetry.
-* **Silver Layer (Transformation):** Data cleaning and validation. Includes a **Quality Gate** to detect "Sensor Drift" and handle null values using industrial standards.
-* **Gold Layer (Analytics):** High-level business logic. Integrates an **External API** for energy pricing to calculate the `estimated_hourly_loss_euro`.
-* **Governance & Audit:** Automated health checks that generate a "Pipeline Health Score" to ensure data integrity for downstream stakeholders.
+## 🌟 Project Overview
+This project demonstrates a full-stack Data Engineering solution that processes raw factory sensor data into actionable financial insights. The unique value proposition is the **Data Sovereignty**—using a local LLM (Llama 3) to query sensitive KPIs without ever sending data to a cloud provider (OpenAI/Google).
 
 
 
-## 🚀 Key Features
-* **End-to-End Orchestration:** Fully automated lifecycle via `main.py`.
-* **Idempotent ETL:** SQL-based logic ensures no duplicate records, maintaining a "Single Source of Truth."
-* **Executive BI Dashboard:** A Power BI "Command Center" featuring conditional formatting (Heatmaps) for immediate OPEX risk identification.
-* **Scalable Design:** Architected to be easily ported from local SQLite to cloud-scale (Azure Synapse/AWS Redshift).
+## 🛠️ Architecture: The Medallion Pattern
+The pipeline follows the industry-standard **Medallion Architecture**:
+- **Bronze (Raw):** Ingestion of raw sensor CSVs (Temperature, Vibration, Power).
+- **Silver (Cleaned):** Data validation, unit conversion (F to C), and quality flagging.
+- **Gold (Business):** Aggregated financial impact analysis (Estimated Hourly Loss in €).
 
-## 🧰 Tech Stack
-* **Language:** Python 3.12+ (Pandas, SQLAlchemy, Requests)
-* **Database:** SQLite (Relational Data Lakehouse)
-* **BI Tool:** Power BI Desktop
-* **Version Control:** Git
+## 🧠 AI Agent: "The Plant Manager"
+Instead of a simple chatbot, this project uses a **ReAct (Reason/Act) SQL Agent**:
+- **Framework:** LangChain
+- **Inference:** Local Llama 3 via **Ollama**
+- **Logic:** The agent autonomously writes and executes SQL queries against the Gold Layer to answer complex questions like: *"What is the percentage of loss of the highest-loss machine relative to the total?"*
 
-## ⚙️ How to Run
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/gitesh-kumar/Industrial_Data_Pipeline.git](https://github.com/gitesh-kumar/Industrial_Data_Pipeline.git)
-    ```
-2.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  **Execute the pipeline:**
-    ```bash
-    python main.py
-    ```
+## 🚀 Key Professional Features
+- **Python 3.12 Optimized:** Migrated from 3.8 to 3.12 with modern type hinting.
+- **Local Inference:** 100% offline. No API keys or external data leaks.
+- **Robust Error Handling:** Implemented ReAct loops to handle complex multi-step analytical queries.
 
+## 📈 Sample AI Query
+**User:** *"Which machine should I repair first based on hourly loss?"* **AI:** *"You should prioritize COMPRESSOR_03, which accounts for 63.14% of the total factory hourly loss (€19.58/hr)."*
+
+## ⚙️ Setup
+1. Install [Ollama](https://ollama.com) and run `ollama run llama3`.
+2. `pip install -r requirements.txt`
+3. Run `python main.py` to populate the Lakehouse.
+4. Run `python ai_assistant.py` to talk to the factory.
