@@ -20,16 +20,15 @@ def dashboard():
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 agent_executor = None
-
+llm_instance = None
 def get_agent():
-    global agent_executor
-    if agent_executor is None:
-        from ai_assistant import agent_executor as _agent
+    global agent_executor, llm_instance
+    if agent_executor is None and llm_instance is None:
+        from ai_assistant import agent_executor as _agent, llm as _llm, AI_MODE as _mode, ask as _ask
         agent_executor = _agent
-    return agent_executor
-
-class QueryRequest(BaseModel):
-    question: str
+        llm_instance = _llm
+    from ai_assistant import ask
+    return ask
 
 @app.get("/")
 def root():
@@ -98,31 +97,19 @@ def pipeline_health():
 @app.post("/query")
 def query_agent(request: QueryRequest):
     try:
-        agent = get_agent()
-        response = agent.invoke({"input": request.question})
-
-        sql_queries = []
-        for step in response.get("intermediate_steps", []):
-            try:
-                action, observation = step
-                if hasattr(action, 'tool') and action.tool == 'sql_db_query':
-                    sql_queries.append(str(action.tool_input))
-            except:
-                pass
-
+        ask = get_agent()
+        answer = ask(request.question)
         return {
             "question": request.question,
-            "answer": response["output"],
-            "sql_queries_used": sql_queries,
-            "total_steps": len(response.get("intermediate_steps", []))
+            "answer": answer
         }
-
     except Exception as e:
         error_str = str(e)
-        # Return clean error messages — never expose API keys or org details
         if "429" in error_str or "rate_limit" in error_str.lower():
             raise HTTPException(status_code=429, detail="Rate limit reached. Please wait a few minutes and try again.")
         elif "401" in error_str or "auth" in error_str.lower():
             raise HTTPException(status_code=401, detail="Authentication error. Please check server configuration.")
+        elif "iteration limit" in error_str.lower() or "time limit" in error_str.lower():
+            raise HTTPException(status_code=500, detail="Query too complex. Try rephrasing with a more specific question.")
         else:
             raise HTTPException(status_code=500, detail="An error occurred processing your request. Please try again.")
