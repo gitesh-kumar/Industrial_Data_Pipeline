@@ -134,3 +134,12 @@ def debug():
         "static_folder_exists": static_exists,
         "dashboard_file_exists": dashboard_exists
     }
+@app.get("/")
+def root():
+    return {
+        "status": "running",
+        "version": "v2-with-dashboard",
+        "project": "Industrial IoT Predictive Maintenance System",
+        "mode": os.getenv("AI_MODE", "cloud"),
+        "docs": "/docs"
+    }
