@@ -119,3 +119,18 @@ def query_agent(request: QueryRequest):
             raise HTTPException(status_code=500, detail="Query too complex. Try rephrasing with a more specific question.")
         else:
             raise HTTPException(status_code=500, detail="An error occurred processing your request. Please try again.")
+
+
+@app.get("/debug")
+def debug():
+    import os
+    current_dir = os.getcwd()
+    files = os.listdir(current_dir)
+    static_exists = os.path.exists(os.path.join(current_dir, "static"))
+    dashboard_exists = os.path.exists(os.path.join(current_dir, "static", "dashboard.html"))
+    return {
+        "current_dir": current_dir,
+        "files": files,
+        "static_folder_exists": static_exists,
+        "dashboard_file_exists": dashboard_exists
+    }
