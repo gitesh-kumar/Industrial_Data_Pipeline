@@ -5,7 +5,7 @@
 
 ## What This Project Does
 
-This system monitors factory machinery in real-time and translates raw sensor data into financial risk. It tells you not just that a machine is running hot — but exactly how much that is costing you per hour, and whether you should shut it down.
+This system monitors factory machinery in real-time and translates raw sensor data into financial risk. It tells you not just that a machine is running hot but exactly how much that is costing you per hour, and whether you should shut it down.
 
 I built this because I spent 4 years at Hindustan Petroleum Corporation working with SCADA systems and watching engineers make critical decisions based on Excel sheets pulled manually from plant historians. This project automates that entire workflow.
 
@@ -15,13 +15,13 @@ I built this because I spent 4 years at Hindustan Petroleum Corporation working 
 
 The pipeline follows the **Medallion Architecture** used by companies like Databricks and Microsoft for production data lakes:
 
-**Bronze Layer** — Raw ingestion. Seventeen factory machines (turbines, pumps, compressors, motors, generators, heat exchangers) generate sensor telemetry every 3 seconds. Vibration, temperature, and power consumption are captured and appended to a time-series store. Anomaly spikes are injected probabilistically to simulate real failure events.
+**Bronze Layer** - Raw ingestion. Seventeen factory machines (turbines, pumps, compressors, motors, generators, heat exchangers) generate sensor telemetry every 3 seconds. Vibration, temperature, and power consumption are captured and appended to a time-series store. Anomaly spikes are injected probabilistically to simulate real failure events.
 
-**Silver Layer** — Cleaning and validation. Raw data is deduplicated, quality-flagged (PASS, HIGH_TEMP_WARN, VIBRATION_CRITICAL, FAILURE_SPIKE, DEGRADATION_WARN), unit-converted, and enriched with a composite risk score before being loaded into a structured SQL table.
+**Silver Layer** - Cleaning and validation. Raw data is deduplicated, quality-flagged (PASS, HIGH_TEMP_WARN, VIBRATION_CRITICAL, FAILURE_SPIKE, DEGRADATION_WARN), unit-converted, and enriched with a composite risk score before being loaded into a structured SQL table.
 
-**Gold Layer** — Business intelligence. Live energy market pricing (simulating German peak/off-peak electricity rates) is applied to each machine's power consumption to calculate hourly energy cost in euros. Machines are classified by efficiency status and given operational recommendations (CONTINUE, REDUCE_LOAD, SCHEDULE_MAINTENANCE, IMMEDIATE_SHUTDOWN).
+**Gold Layer** - Business intelligence. Live energy market pricing (simulating German peak/off-peak electricity rates) is applied to each machine's power consumption to calculate hourly energy cost in euros. Machines are classified by efficiency status and given operational recommendations (CONTINUE, REDUCE_LOAD, SCHEDULE_MAINTENANCE, IMMEDIATE_SHUTDOWN).
 
-**Governance Layer** — Automated pipeline health scoring. Every run calculates a data quality percentage and flags degradation in sensor reliability.
+**Governance Layer** - Automated pipeline health scoring. Every run calculates a data quality percentage and flags degradation in sensor reliability.
 
 ---
 
@@ -29,11 +29,11 @@ The pipeline follows the **Medallion Architecture** used by companies like Datab
 
 This is where it gets interesting. The system supports three inference modes, each designed for a different deployment context:
 
-**Local Mode (Ollama + Llama3)** — Runs entirely on-premise. No data leaves the machine. Designed for environments where operational data is sensitive and cannot be sent to external cloud providers. This is the reality in most industrial settings — refineries, power plants, and manufacturing facilities cannot use SaaS AI tools due to data sovereignty requirements.
+**Local Mode (Ollama + Llama3)** - Runs entirely on-premise. No data leaves the machine. Designed for environments where operational data is sensitive and cannot be sent to external cloud providers. This is the reality in most industrial settings like refineries, power plants, and manufacturing facilities cannot use SaaS AI tools due to data sovereignty requirements.
 
-**Cloud Fast Mode (Groq + Intent Router)** — A production-grade architecture where the AI classifies the user's question into one of eight predefined intents, executes a pre-written SQL query, and uses the LLM only to format a natural language response. Two LLM calls total. This approach is 10x cheaper than an open-ended agent, eliminates infinite loop failures, and scales to datasets of any size.
+**Cloud Fast Mode (Groq + Intent Router)** - A production-grade architecture where the AI classifies the user's question into one of eight predefined intents, executes a pre-written SQL query, and uses the LLM only to format a natural language response. Two LLM calls total. This approach is 10x cheaper than an open-ended agent, eliminates infinite loop failures, and scales to datasets of any size.
 
-**Cloud Agent Mode (Groq + ReAct)** — A LangChain SQL agent that autonomously writes and executes SQL queries for exploratory analysis. Powerful for ad-hoc questions but token-intensive. Included to demonstrate the architectural tradeoff — and because knowing *when not* to use an agent is as important as knowing how to build one.
+**Cloud Agent Mode (Groq + ReAct)** - A LangChain SQL agent that autonomously writes and executes SQL queries for exploratory analysis. Powerful for ad-hoc questions but token-intensive. Included to demonstrate the architectural tradeoff and because knowing *when not* to use an agent is as important as knowing how to build one.
 
 The dual architecture is not an accident. It reflects a real decision engineers face: data sovereignty vs. scalability. This system lets you choose.
 
@@ -111,4 +111,4 @@ docker run -p 8000:8000 --env-file .env industrial-pipeline
 
 ## Why This Architecture Matters
 
-Most AI projects query a database and return an answer. This one makes an architectural decision about *how* to query — and explains why. The intent router exists because I hit the limitations of open-ended agents at scale and redesigned the system around those constraints. That is what production engineering looks like.
+Most AI projects query a database and return an answer. This one makes an architectural decision about *how* to query and explains why. The intent router exists because I hit the limitations of open-ended agents at scale and redesigned the system around those constraints. That is what production engineering looks like.
