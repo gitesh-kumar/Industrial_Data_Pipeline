@@ -3,7 +3,7 @@ venv/
 .env
 
 # Databases
-*.db
+#*.db
 *.sqlite
 
 # Python Cache
