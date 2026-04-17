@@ -13,9 +13,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
 @app.get("/dashboard")
 def dashboard():
-    return FileResponse("static/dashboard.html")
+    static_path = os.path.join(os.path.dirname(__file__), "static", "dashboard.html")
+    return FileResponse(static_path)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
