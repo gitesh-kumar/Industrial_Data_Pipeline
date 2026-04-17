@@ -21,14 +21,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 agent_executor = None
 llm_instance = None
+
 def get_agent():
     global agent_executor, llm_instance
     if agent_executor is None and llm_instance is None:
-        from ai_assistant import agent_executor as _agent, llm as _llm, AI_MODE as _mode, ask as _ask
+        from ai_assistant import agent_executor as _agent, llm as _llm
         agent_executor = _agent
         llm_instance = _llm
     from ai_assistant import ask
     return ask
+
+class QueryRequest(BaseModel):
+    question: str
 
 @app.get("/")
 def root():
