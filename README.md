@@ -105,7 +105,7 @@ docker build -t industrial-pipeline .
 docker run -p 8000:8000 --env-file .env industrial-pipeline
 ```
 
-**Live demo:** https://industrialdatapipeline-production.up.railway.app/dashboard
+**Live demo:** https://industrialdatapipeline.up.railway.app/dashboard
 
 ---
 
