@@ -35,7 +35,8 @@ else:
     llm = ChatGroq(
         model="llama-3.3-70b-versatile",
         groq_api_key=os.getenv("GROQ_API_KEY"),
-        temperature=0
+        temperature=0,
+        max_tokens=2048
     )
     print("☁️  Running in CLOUD mode (Groq/Llama3) — scalable deployment")
 
