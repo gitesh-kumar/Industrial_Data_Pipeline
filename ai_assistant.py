@@ -5,10 +5,7 @@ from langchain_community.agent_toolkits import create_sql_agent
 
 load_dotenv()
 
-db = db = SQLDatabase.from_uri(
-    "sqlite:///factory_lakehouse.db",
-    include_tables=["gold_operations_status"]
-)
+db = SQLDatabase.from_uri("sqlite:///factory_lakehouse.db")
 
 def select_mode():
     print("\n" + "="*50)
