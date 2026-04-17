@@ -21,7 +21,6 @@ def select_mode():
             return 'local' if choice == '1' else 'cloud'
         print("Invalid choice. Please enter 1 or 2.")
 
-# Check if running as API (no interactive input) or standalone
 AI_MODE = os.getenv("AI_MODE", None)
 
 if AI_MODE is None:
@@ -34,7 +33,7 @@ if AI_MODE == "local":
 else:
     from langchain_groq import ChatGroq
     llm = ChatGroq(
-        model="llama-3.1-8b-instant",
+        model="llama-3.3-70b-versatile",
         groq_api_key=os.getenv("GROQ_API_KEY"),
         temperature=0
     )
@@ -43,8 +42,10 @@ else:
 agent_executor = create_sql_agent(
     llm,
     db=db,
-    verbose=True,
-    handle_parsing_errors=True
+    verbose=False,
+    handle_parsing_errors=True,
+    max_iterations=5,
+    max_execution_time=30
 )
 
 if __name__ == "__main__":
