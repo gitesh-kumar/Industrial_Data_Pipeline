@@ -2,6 +2,8 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 load_dotenv()
 
@@ -10,6 +12,12 @@ app = FastAPI(
     description="REST API for the Smart Factory Data Lakehouse",
     version="1.0.0"
 )
+
+@app.get("/dashboard")
+def dashboard():
+    return FileResponse("static/dashboard.html")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 agent_executor = None
 
@@ -93,7 +101,6 @@ def query_agent(request: QueryRequest):
         agent = get_agent()
         response = agent.invoke({"input": request.question})
 
-        # Extract SQL queries used
         sql_queries = []
         for step in response.get("intermediate_steps", []):
             try:
@@ -111,4 +118,11 @@ def query_agent(request: QueryRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_str = str(e)
+        # Return clean error messages — never expose API keys or org details
+        if "429" in error_str or "rate_limit" in error_str.lower():
+            raise HTTPException(status_code=429, detail="Rate limit reached. Please wait a few minutes and try again.")
+        elif "401" in error_str or "auth" in error_str.lower():
+            raise HTTPException(status_code=401, detail="Authentication error. Please check server configuration.")
+        else:
+            raise HTTPException(status_code=500, detail="An error occurred processing your request. Please try again.")
