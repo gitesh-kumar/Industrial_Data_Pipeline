@@ -6,9 +6,6 @@ Creates a cryptographic Ziti identity for each of the 17 factory machines.
 This script is run ONCE when setting up the zero-trust fabric.
 Each machine gets its own X.509 certificate stored as a JSON identity file.
 
-In production: run this on the Ziti controller server, then distribute
-identity files to each physical machine via secure out-of-band channel.
-
 Usage:
     python ziti/enroll_machines.py --enroll-all
     python ziti/enroll_machines.py --enroll TURBINE_01
@@ -80,16 +77,16 @@ class ZitiEnrollmentManager:
         """
         machine = next((m for m in MACHINES if m["id"] == machine_id), None)
         if not machine:
-            print(f"❌ Unknown machine: {machine_id}")
+            print(f"Unknown machine: {machine_id}")
             return False
 
         identity_path = get_machine_identity_path(machine_id)
         
         if identity_path.exists():
-            print(f"⚠️  Identity already exists for {machine_id} at {identity_path}")
+            print(f"Identity already exists for {machine_id} at {identity_path}")
             return True
 
-        print(f"🔐 Enrolling {machine_id}...")
+        print(f"Enrolling {machine_id}...")
 
         # Step 1 — Create identity in controller
         identity_name = f"factory-machine-{machine_id.lower()}"
@@ -102,7 +99,7 @@ class ZitiEnrollmentManager:
         ])
 
         if returncode != 0:
-            print(f"❌ Failed to create identity for {machine_id}: {stderr}")
+            print(f"Failed to create identity for {machine_id}: {stderr}")
             # In demo mode (no controller), create a mock identity file
             self._create_mock_identity(machine_id, machine)
             return True
@@ -115,7 +112,7 @@ class ZitiEnrollmentManager:
         ])
 
         if returncode != 0:
-            print(f"❌ Failed to enroll {machine_id}: {stderr}")
+            print(f"Failed to enroll {machine_id}: {stderr}")
             return False
 
         # Step 3 — Log enrollment
@@ -130,7 +127,7 @@ class ZitiEnrollmentManager:
         # Clean up JWT file
         jwt_path.unlink(missing_ok=True)
 
-        print(f"✅ {machine_id} enrolled — identity: {identity_path}")
+        print(f"{machine_id} enrolled — identity: {identity_path}")
         return True
 
     def _create_mock_identity(self, machine_id: str, machine: dict):
@@ -171,14 +168,14 @@ class ZitiEnrollmentManager:
         }
         self._save_log()
         
-        print(f"📋 {machine_id} — mock identity created (demo mode)")
+        print(f"{machine_id} — mock identity created (demo mode)")
 
     def enroll_ingestion_server(self):
         """Creates identity for the ingestion service itself."""
-        print("🔐 Enrolling ingestion server...")
+        print("Enrolling ingestion server...")
         
         if INGESTION_SERVER_IDENTITY.exists():
-            print(f"⚠️  Ingestion server identity already exists")
+            print(f"Ingestion server identity already exists")
             return True
 
         returncode, stdout, stderr = self._run_ziti_command([
@@ -205,15 +202,15 @@ class ZitiEnrollmentManager:
             }
             with open(INGESTION_SERVER_IDENTITY, "w") as f:
                 json.dump(mock_identity, f, indent=2)
-            print(f"📋 Ingestion server — mock identity created (demo mode)")
+            print(f"Ingestion server — mock identity created (demo mode)")
             return True
 
-        print(f"✅ Ingestion server enrolled")
+        print(f"Ingestion server enrolled")
         return True
 
     def enroll_all(self):
         """Enrolls all 17 machines plus the ingestion server."""
-        print(f"\n🏭 ENROLLING ALL FACTORY MACHINES")
+        print(f"\n ENROLLING ALL FACTORY MACHINES")
         print(f"{'='*50}")
         print(f"Controller: {ZITI_CONTROLLER_URL}")
         print(f"Identity dir: {IDENTITY_DIR}")
@@ -233,15 +230,15 @@ class ZitiEnrollmentManager:
                 failed += 1
 
         print(f"\n{'='*50}")
-        print(f"✅ Enrolled: {success}/{len(MACHINES)} machines")
+        print(f"Enrolled: {success}/{len(MACHINES)} machines")
         if failed:
-            print(f"❌ Failed: {failed} machines")
-        print(f"📁 Identities stored in: {IDENTITY_DIR}")
+            print(f"Failed: {failed} machines")
+        print(f"Identities stored in: {IDENTITY_DIR}")
         print(f"{'='*50}")
 
     def list_identities(self):
         """Lists all enrolled machine identities."""
-        print(f"\n📋 ENROLLED IDENTITIES")
+        print(f"\n ENROLLED IDENTITIES")
         print(f"{'='*50}")
         
         if not self.log["enrolled"]:
@@ -251,7 +248,7 @@ class ZitiEnrollmentManager:
         for machine_id, info in self.log["enrolled"].items():
             mode = info.get("mode", "production")
             path = Path(info["identity_path"])
-            exists = "✅" if path.exists() else "❌ MISSING"
+            exists = "Path exists" if path.exists() else "MISSING"
             print(f"{exists} {machine_id:20} | {info['type']:15} | {mode:10} | {info['enrolled_at'][:10]}")
         
         print(f"\nTotal: {len(self.log['enrolled'])} identities")
@@ -263,7 +260,7 @@ class ZitiEnrollmentManager:
         Revokes a machine's identity — immediately cuts off its access.
         This is the key advantage of zero-trust: granular revocation.
         """
-        print(f"🚫 Revoking identity for {machine_id}...")
+        print(f"Revoking identity for {machine_id}...")
         
         returncode, stdout, stderr = self._run_ziti_command([
             "delete", "identity", f"factory-machine-{machine_id.lower()}"
@@ -280,7 +277,7 @@ class ZitiEnrollmentManager:
         self.log["revoked"].append(machine_id)
         self._save_log()
 
-        print(f"✅ {machine_id} identity revoked — access immediately terminated")
+        print(f"{machine_id} identity revoked — access immediately terminated")
 
 
 if __name__ == "__main__":

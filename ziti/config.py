@@ -4,17 +4,13 @@ OpenZiti Configuration
 Central configuration for the zero-trust network fabric.
 All machine identities, service names and controller settings live here.
 
-Set these via environment variables (.env file) — never hardcode
-real credentials or IP addresses in this file.
 """
 
 import os
 from pathlib import Path
 
 # ── CONTROLLER ───────────────────────────────────────────────────
-# Set these in your .env file:
-#   ZITI_CONTROLLER_URL=https://your-server-ip:1280
-#   ZITI_ADMIN_PASSWORD=your-actual-password
+
 ZITI_CONTROLLER_URL = os.getenv("ZITI_CONTROLLER_URL", "https://localhost:1280")
 ZITI_CONTROLLER_MGMT_URL = os.getenv("ZITI_CONTROLLER_MGMT_URL", "https://localhost:1280")
 

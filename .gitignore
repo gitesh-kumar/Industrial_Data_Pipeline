@@ -3,7 +3,6 @@ venv/
 .env
 
 # Databases
-#*.db
 *.sqlite
 
 # Python Cache
@@ -16,3 +15,7 @@ Thumbs.db
 
 # Data
 data/*.csv
+
+# Ziti Identities (contain private keys - never commit!)
+ziti/identities/
+*.jwt

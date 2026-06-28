@@ -82,7 +82,7 @@ class ZitiMachineClient:
         
         # Check if this is a mock identity (demo mode)
         if "machine_metadata" in identity and identity["machine_metadata"].get("mode", "").startswith("DEMO"):
-            print(f"⚠️  {self.machine_id} running in DEMO mode (no real Ziti controller)")
+            print(f"{self.machine_id} running in DEMO mode (no real Ziti controller)")
             return None
         
         return identity
@@ -94,19 +94,19 @@ class ZitiMachineClient:
         
             identity = self.load_identity()
             if identity is None:
-                print(f"📋 {self.machine_id} — demo mode, using direct connection")
+                print(f"{self.machine_id} — demo mode, using direct connection")
                 return False
 
         # Load Ziti context with machine identity and CA cert
             self.ziti_context = openziti.load(str(self.identity_path))
-            print(f"🔐 {self.machine_id} — Ziti identity loaded, connecting to fabric...")
+            print(f"{self.machine_id} — Ziti identity loaded, connecting to fabric...")
             return True
 
         except ImportError:
-            print(f"⚠️  openziti package not installed.")
+            print(f"openziti package not installed.")
             return False
         except Exception as e:
-            print(f"❌ {self.machine_id} — Ziti connection failed: {e}")
+            print(f"{self.machine_id} — Ziti connection failed: {e}")
             return False
 
 
@@ -171,7 +171,7 @@ class ZitiMachineClient:
                 return self._demo_send(reading)
 
         except Exception as e:
-            print(f"❌ {self.machine_id} send failed: {e}")
+            print(f"{self.machine_id} send failed: {e}")
             return False
 
     def _demo_send(self, reading: dict) -> bool:
@@ -201,7 +201,7 @@ class ZitiMachineClient:
         use_ziti = self.connect()
         
         mode = "ZITI-SECURED" if use_ziti else "DEMO"
-        print(f"🚀 {self.machine_id} [{mode}] — streaming telemetry every {interval}s")
+        print(f"{self.machine_id} [{mode}] — streaming telemetry every {interval}s")
         
         self.running = True
         while self.running:
@@ -209,12 +209,12 @@ class ZitiMachineClient:
             success = self.send_reading(reading, use_ziti=use_ziti)
             
             if success:
-                status = "🔒" if use_ziti else "📋"
+                status = "Pure Ziti Security" if use_ziti else "Demo Mode"
                 print(f"{status} {self.machine_id} | "
                       f"temp={reading['temp_c']}°C | "
                       f"vibration={reading['vibration_rms']} | "
                       f"power={reading['power_kw']}kW"
-                      + (" ⚠️ SPIKE" if reading["failure_spike"] else ""))
+                      + (" SPIKE" if reading["failure_spike"] else ""))
             
             time.sleep(interval)
 
@@ -228,7 +228,7 @@ def run_all_machines(interval: int = 3):
     Each machine uses its own Ziti identity — complete isolation.
     """
     print(f"\n{'='*60}")
-    print(f"🏭 STARTING ALL {len(MACHINES)} FACTORY MACHINES")
+    print(f"STARTING ALL {len(MACHINES)} FACTORY MACHINES")
     print(f"Zero-Trust Mode: OpenZiti SDK")
     print(f"{'='*60}\n")
 
@@ -247,20 +247,20 @@ def run_all_machines(interval: int = 3):
             )
             threads.append(thread)
         except Exception as e:
-            print(f"❌ Failed to initialize {machine_config['id']}: {e}")
+            print(f"Failed to initialize {machine_config['id']}: {e}")
 
     # Start all machines
     for thread in threads:
         thread.start()
 
-    print(f"\n✅ {len(threads)} machines streaming through Ziti fabric")
+    print(f"\n {len(threads)} machines streaming through Ziti fabric")
     print("Press Ctrl+C to stop all machines\n")
 
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n🛑 Stopping all machines...")
+        print("\n Stopping all machines...")
         for client in clients:
             client.stop()
 

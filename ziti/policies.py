@@ -150,7 +150,7 @@ class ZitiPolicyManager:
 
     def create_service(self, service_name: str, service_config: dict):
         """Creates a Ziti service."""
-        print(f"📡 Creating service: {service_name}")
+        print(f" Creating service: {service_name}")
         
         role_attrs = ",".join(service_config.get("roleAttributes", []))
         returncode, stdout, stderr = self._run([
@@ -160,16 +160,16 @@ class ZitiPolicyManager:
         ])
         
         if returncode == 0:
-            print(f"✅ Service created: {service_name}")
+            print(f" Service created: {service_name}")
         else:
-            print(f"⚠️  {service_name}: {stderr.strip() or 'already exists'}")
+            print(f"  {service_name}: {stderr.strip() or 'already exists'}")
 
     def create_service_policy(self, policy_name: str, policy: dict):
         """Creates a Ziti service policy."""
         if policy.get("type") != "ServicePolicy":
             return
         
-        print(f"🔒 Creating service policy: {policy_name}")
+        print(f"Creating service policy: {policy_name}")
         
         identity_roles = " ".join(policy.get("identityRoles", []))
         service_roles = " ".join(policy.get("serviceRoles", []))
@@ -183,16 +183,16 @@ class ZitiPolicyManager:
         ])
         
         if returncode == 0:
-            print(f"✅ Policy created: {policy_name}")
+            print(f"Policy created: {policy_name}")
         else:
-            print(f"⚠️  {policy_name}: {stderr.strip() or 'already exists'}")
+            print(f"{policy_name}: {stderr.strip() or 'already exists'}")
 
     def create_edge_router_policy(self, policy_name: str, policy: dict):
         """Creates a Ziti edge router policy."""
         if policy.get("type") != "EdgeRouterPolicy":
             return
         
-        print(f"🌐 Creating edge router policy: {policy_name}")
+        print(f"Creating edge router policy: {policy_name}")
         
         identity_roles = " ".join(policy.get("identityRoles", []))
         router_roles = " ".join(policy.get("edgeRouterRoles", []))
@@ -205,41 +205,41 @@ class ZitiPolicyManager:
         ])
         
         if returncode == 0:
-            print(f"✅ Edge router policy created: {policy_name}")
+            print(f"Edge router policy created: {policy_name}")
         else:
-            print(f"⚠️  {policy_name}: {stderr.strip() or 'already exists'}")
+            print(f"{policy_name}: {stderr.strip() or 'already exists'}")
 
     def apply_all(self):
         """Applies all services and policies to the Ziti controller."""
         print(f"\n{'='*60}")
-        print(f"🔒 APPLYING ZERO-TRUST POLICIES")
+        print(f"APPLYING ZERO-TRUST POLICIES")
         print(f"Controller: {ZITI_CONTROLLER_URL}")
         print(f"{'='*60}\n")
 
         # Create services first
-        print("📡 SERVICES")
+        print("SERVICES")
         print("-" * 40)
         for service_name, service_config in SERVICES.items():
             self.create_service(service_name, service_config)
 
-        print("\n🔒 SERVICE POLICIES")
+        print("\n SERVICE POLICIES")
         print("-" * 40)
         for policy_name, policy in POLICIES.items():
             if policy.get("type") == "ServicePolicy":
                 self.create_service_policy(policy_name, policy)
 
-        print("\n🌐 EDGE ROUTER POLICIES")
+        print("\n EDGE ROUTER POLICIES")
         print("-" * 40)
         for policy_name, policy in POLICIES.items():
             if policy.get("type") == "EdgeRouterPolicy":
                 self.create_edge_router_policy(policy_name, policy)
 
         print(f"\n{'='*60}")
-        print(f"✅ Zero-trust policies applied")
+        print(f"Zero-trust policies applied")
         print(f"\nAccess summary:")
-        print(f"  ✅ Enrolled machines ({FACTORY_DEVICE_ROLE}) → can SEND to ingestion")
-        print(f"  ✅ Ingestion server ({INGESTION_SERVICE_ROLE}) → can RECEIVE data")
-        print(f"  ❌ Everything else → DENIED by default")
+        print(f"Enrolled machines ({FACTORY_DEVICE_ROLE}) → can SEND to ingestion")
+        print(f"Ingestion server ({INGESTION_SERVICE_ROLE}) → can RECEIVE data")
+        print(f"Everything else → DENIED by default")
         print(f"{'='*60}\n")
 
     def print_policy_summary(self):

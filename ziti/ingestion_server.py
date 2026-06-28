@@ -10,8 +10,8 @@ NO exposed IP address. It is completely dark to the internet.
 Only machines with a valid enrolled Ziti identity can reach it.
 
 Architecture:
-    Internet → ❌ BLOCKED (no open ports)
-    Ziti Fabric → ✅ ALLOWED (identity verified)
+    Internet →  BLOCKED (no open ports)
+    Ziti Fabric →  ALLOWED (identity verified)
 
 Usage:
     python ziti/ingestion_server.py
@@ -214,7 +214,7 @@ class ZitiIngestionServer:
             import openziti
         
             if not INGESTION_SERVER_IDENTITY.exists():
-                print(f"⚠️  Ingestion server identity not found: {INGESTION_SERVER_IDENTITY}")
+                print(f"Ingestion server identity not found: {INGESTION_SERVER_IDENTITY}")
                 return False
         
             result = openziti.load(str(INGESTION_SERVER_IDENTITY))
@@ -224,14 +224,14 @@ class ZitiIngestionServer:
             else:
                 self.ziti_context = result
             
-            print(f"🔐 Ingestion server identity loaded")
+            print(f"Ingestion server identity loaded")
             return True
     
         except ImportError:
-            print("⚠️  openziti not installed — running in demo mode")
+            print("openziti not installed — running in demo mode")
             return False
         except Exception as e:
-            print(f"❌ Ziti init failed: {e}")
+            print(f"Ziti init failed: {e}")
             return False
 
     def _start_ziti_server(self):
@@ -239,14 +239,14 @@ class ZitiIngestionServer:
         import uvicorn
 
         print(f"\n{'='*60}")
-        print(f"🔒 ZITI-SECURED INGESTION SERVER")
+        print(f"ZITI-SECURED INGESTION SERVER")
         print(f"Service: {INGESTION_SERVICE_NAME}")
         print(f"Mode: DARK SERVICE (no open ports)")
         print(f"Only Ziti-enrolled machines can connect")
         print(f"{'='*60}\n")
 
-        print(f"✅ Starting Ziti-secured ingestion service")
-        print(f"🛡️  Waiting for verified machine connections...\n")
+        print(f"Starting Ziti-secured ingestion service")
+        print(f"Waiting for verified machine connections...\n")
 
         # Use OpenZiti monkey patching to intercept all socket calls
         # This makes uvicorn transparently use the Ziti fabric
@@ -268,9 +268,9 @@ class ZitiIngestionServer:
         import uvicorn
         
         print(f"\n{'='*60}")
-        print(f"📋 DEMO MODE INGESTION SERVER")
+        print(f"DEMO MODE INGESTION SERVER")
         print(f"URL: http://{host}:{port}")
-        print(f"⚠️  No Ziti security (demo only)")
+        print(f"No Ziti security (demo only)")
         print(f"{'='*60}\n")
         
         uvicorn.run(ingestion_app, host=host, port=port, log_level="info")
