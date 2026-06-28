@@ -78,6 +78,9 @@ INTENT_KEYWORDS = {
     "highest_loss": ["loss", "losing", "highest loss", "most loss", "worst"]
 }
 
+KNOWN_MACHINE_TYPES = ["TURBINE", "PUMP", "COMPRESSOR", "MOTOR", "GENERATOR", "HEAT_EXCHANGER"]
+
+
 def detect_intent(question: str) -> str:
     question_lower = question.lower()
     scores = {intent: 0 for intent in INTENT_KEYWORDS}
@@ -87,35 +90,62 @@ def detect_intent(question: str) -> str:
                 scores[intent] += 1
     best_intent = max(scores, key=scores.get)
     if scores[best_intent] == 0:
-        return "fleet_overview"
+        return "unrecognized"
     return best_intent
+
+
+def extract_unknown_entities(question: str) -> list:
+    """
+    Flags words that look like machine-type references but aren't
+    in our known schema — catches things like 'conveyor' which doesn't exist.
+    """
+    suspicious_words = ["conveyor", "robot", "arm", "valve", "sensor", "actuator", "press", "crane"]
+    question_lower = question.lower()
+    return [w for w in suspicious_words if w in question_lower]
+
 
 def run_fast_query(question: str, llm) -> str:
     intent = detect_intent(question)
+
+    # ── Guard 1: unrecognized intent ──────────────────────────
+    if intent == "unrecognized":
+        return ("I don't have a defined process for answering that question. "
+                 "I can help with: energy cost, risk score, maintenance status, "
+                 "efficiency, failure spikes, or comparisons between machine types.")
+
+    # ── Guard 2: question references an entity not in our data ──
+    unknown_entities = extract_unknown_entities(question)
+    if unknown_entities:
+        return (f"I don't have any data for '{', '.join(unknown_entities)}'. "
+                f"My system only monitors: {', '.join(KNOWN_MACHINE_TYPES)}.")
+
     query = INTENT_QUERIES[intent]
-    
+
     with engine.connect() as conn:
         result = conn.execute(text(query))
         rows = [dict(row._mapping) for row in result]
-    
-    prompt = f"""You are an industrial AI assistant analyzing factory machine data.
+
+    # ── Guard 3: no rows came back ──────────────────────────────
+    if not rows:
+        return "No data is currently available to answer that question."
+
+    prompt = f"""Answer using ONLY the data below. Do not infer or assume anything not directly stated.
+If the data doesn't support a clear answer, say "Insufficient data to answer."
 
 Question: {question}
-Intent detected: {intent}
-Query results: {json.dumps(rows, indent=2)}
+Data: {json.dumps(rows)}
 
-Give a clear, concise answer in 2-3 sentences. Focus on the most important insight.
-Start directly with the answer, no preamble."""
+Respond in 2-3 sentences. Reference only machine_id values that appear in the data above."""
 
-    # Handle both Ollama and Groq response formats
     try:
         response = llm.invoke(prompt)
-        if hasattr(response, 'content'):
-            return response.content
-        return str(response)
+        answer = response.content if hasattr(response, 'content') else str(response)
     except Exception:
         response = llm(prompt)
-        return str(response)
+        answer = str(response)
+
+    return answer
+
 
 # ── MODE SELECTION ───────────────────────────────────────────────
 def select_mode():
@@ -126,13 +156,14 @@ def select_mode():
     print("2. Cloud Fast mode   (Groq/Intent)    — reliable & cheap")
     print("3. Cloud Agent mode  (Groq/ReAct)     — flexible & powerful")
     print("="*50)
-    
+
     while True:
         choice = input("Select mode (1, 2 or 3): ").strip()
         if choice in ['1', '2', '3']:
             modes = {'1': 'local', '2': 'cloud_fast', '3': 'cloud_agent'}
             return modes[choice]
         print("Invalid choice. Please enter 1, 2 or 3.")
+
 
 AI_MODE = os.getenv("AI_MODE", None)
 if AI_MODE is None:
@@ -169,6 +200,7 @@ else:
         max_iterations=15, max_execution_time=120
     )
 
+
 def ask(question: str) -> str:
     if AI_MODE == "local" or AI_MODE == "cloud_fast":
         return run_fast_query(question, llm)
@@ -180,6 +212,7 @@ def ask(question: str) -> str:
             if steps:
                 return f"Based on the data: {steps[-1][1]}"
         return output
+
 
 if __name__ == "__main__":
     print("\n🚀 INDUSTRIAL AGENT READY")
