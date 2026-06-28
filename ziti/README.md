@@ -2,7 +2,7 @@
 
 ## Why This Exists
 
-Industrial sensor data is a high-value target. A single compromised SCADA terminal can inject false readings — fake vibration spikes, manipulated temperature data — causing either unnecessary shutdowns or, worse, masking real failures. This is called **data poisoning** and it's a documented threat in OT/ICS environments.
+Industrial sensor data is a high-value target. A single compromised SCADA terminal can inject false readings like fake vibration spikes, manipulated temperature data, causing either unnecessary shutdowns or, worse, masking real failures. This is called **data poisoning** and it's a documented threat in OT/ICS environments.
 
 Traditional security puts a firewall around the factory network and trusts everything inside. Zero-trust assumes the network is already compromised and verifies every connection, every time.
 
