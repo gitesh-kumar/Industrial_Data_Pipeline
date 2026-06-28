@@ -1,4 +1,4 @@
-# Zero-Trust Security Layer -- OpenZiti Integration
+# Zero-Trust Security Layer - - OpenZiti Integration
 
 ## Why This Exists
 
