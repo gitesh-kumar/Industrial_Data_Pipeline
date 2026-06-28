@@ -1,4 +1,4 @@
-# Zero-Trust Security Layer — OpenZiti Integration
+# Zero-Trust Security Layer -- OpenZiti Integration
 
 ## Why This Exists
 
@@ -131,7 +131,7 @@ python ziti/machine_client.py --all
 
 ## Demo Mode (No Ziti Controller)
 
-All scripts fall back to demo mode when no Ziti controller is available. Identity files are created as mock JSON, and data flows through direct HTTP instead of the Ziti fabric. The code architecture is identical — only the transport layer changes.
+All scripts fall back to demo mode when no Ziti controller is available. Identity files are created as mock JSON, and data flows through direct HTTP instead of the Ziti fabric. The code architecture is identical, only the transport layer changes.
 
 ```bash
 # Run in demo mode (no Hetzner server needed)
