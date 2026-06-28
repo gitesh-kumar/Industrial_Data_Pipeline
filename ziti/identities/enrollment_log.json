@@ -1,0 +1,124 @@
+{
+  "enrolled": {
+    "TURBINE_01": {
+      "enrolled_at": "2026-06-14T16:47:28.580560",
+      "identity_path": "/root/ziti/identities/turbine_01.json",
+      "role": "turbine-devices",
+      "type": "TURBINE",
+      "mode": "mock"
+    },
+    "TURBINE_02": {
+      "enrolled_at": "2026-06-14T16:47:28.723247",
+      "identity_path": "/root/ziti/identities/turbine_02.json",
+      "role": "turbine-devices",
+      "type": "TURBINE",
+      "mode": "mock"
+    },
+    "TURBINE_03": {
+      "enrolled_at": "2026-06-14T16:47:28.811049",
+      "identity_path": "/root/ziti/identities/turbine_03.json",
+      "role": "turbine-devices",
+      "type": "TURBINE",
+      "mode": "mock"
+    },
+    "PUMP_01": {
+      "enrolled_at": "2026-06-14T16:47:28.930419",
+      "identity_path": "/root/ziti/identities/pump_01.json",
+      "role": "pump-devices",
+      "type": "PUMP",
+      "mode": "mock"
+    },
+    "PUMP_02": {
+      "enrolled_at": "2026-06-14T16:47:29.054649",
+      "identity_path": "/root/ziti/identities/pump_02.json",
+      "role": "pump-devices",
+      "type": "PUMP",
+      "mode": "mock"
+    },
+    "PUMP_03": {
+      "enrolled_at": "2026-06-14T16:47:29.181488",
+      "identity_path": "/root/ziti/identities/pump_03.json",
+      "role": "pump-devices",
+      "type": "PUMP",
+      "mode": "mock"
+    },
+    "PUMP_04": {
+      "enrolled_at": "2026-06-14T16:47:29.303434",
+      "identity_path": "/root/ziti/identities/pump_04.json",
+      "role": "pump-devices",
+      "type": "PUMP",
+      "mode": "mock"
+    },
+    "COMPRESSOR_01": {
+      "enrolled_at": "2026-06-14T16:47:29.422830",
+      "identity_path": "/root/ziti/identities/compressor_01.json",
+      "role": "compressor-devices",
+      "type": "COMPRESSOR",
+      "mode": "mock"
+    },
+    "COMPRESSOR_02": {
+      "enrolled_at": "2026-06-14T16:47:29.530933",
+      "identity_path": "/root/ziti/identities/compressor_02.json",
+      "role": "compressor-devices",
+      "type": "COMPRESSOR",
+      "mode": "mock"
+    },
+    "COMPRESSOR_03": {
+      "enrolled_at": "2026-06-14T16:47:29.629326",
+      "identity_path": "/root/ziti/identities/compressor_03.json",
+      "role": "compressor-devices",
+      "type": "COMPRESSOR",
+      "mode": "mock"
+    },
+    "HEAT_EXCHANGER_01": {
+      "enrolled_at": "2026-06-14T16:47:29.721504",
+      "identity_path": "/root/ziti/identities/heat_exchanger_01.json",
+      "role": "heat-exchanger-devices",
+      "type": "HEAT_EXCHANGER",
+      "mode": "mock"
+    },
+    "HEAT_EXCHANGER_02": {
+      "enrolled_at": "2026-06-14T16:47:29.827424",
+      "identity_path": "/root/ziti/identities/heat_exchanger_02.json",
+      "role": "heat-exchanger-devices",
+      "type": "HEAT_EXCHANGER",
+      "mode": "mock"
+    },
+    "MOTOR_01": {
+      "enrolled_at": "2026-06-14T16:47:29.947253",
+      "identity_path": "/root/ziti/identities/motor_01.json",
+      "role": "motor-devices",
+      "type": "MOTOR",
+      "mode": "mock"
+    },
+    "MOTOR_02": {
+      "enrolled_at": "2026-06-14T16:47:30.066444",
+      "identity_path": "/root/ziti/identities/motor_02.json",
+      "role": "motor-devices",
+      "type": "MOTOR",
+      "mode": "mock"
+    },
+    "MOTOR_03": {
+      "enrolled_at": "2026-06-14T16:47:30.151687",
+      "identity_path": "/root/ziti/identities/motor_03.json",
+      "role": "motor-devices",
+      "type": "MOTOR",
+      "mode": "mock"
+    },
+    "GENERATOR_01": {
+      "enrolled_at": "2026-06-14T16:47:30.240233",
+      "identity_path": "/root/ziti/identities/generator_01.json",
+      "role": "generator-devices",
+      "type": "GENERATOR",
+      "mode": "mock"
+    },
+    "GENERATOR_02": {
+      "enrolled_at": "2026-06-14T16:47:30.330601",
+      "identity_path": "/root/ziti/identities/generator_02.json",
+      "role": "generator-devices",
+      "type": "GENERATOR",
+      "mode": "mock"
+    }
+  },
+  "revoked": []
+}

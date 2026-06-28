@@ -59,6 +59,7 @@ mypy_extensions==1.1.0
 numpy==2.4.4
 ollama==0.6.1
 openai==2.26.0
+openziti==1.6.0
 orjson==3.11.7
 ormsgpack==1.12.2
 packaging==26.0
