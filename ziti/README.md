@@ -163,18 +163,3 @@ Default deny. Explicit allow. Every connection verified. This is zero-trust.
 | Port scanning | ✅ Finds open ports | ❌ No ports to find |
 | Lateral movement | ✅ Access spreads | ❌ Per-service policies |
 | Insider threat | ⚠️ Hard to audit | ✅ Full audit trail |
-
----
-
-## CV / Interview Notes
-
-This implementation demonstrates:
-
-- **OT/IT convergence** — bridging factory floor devices with enterprise IT infrastructure securely
-- **Application-embedded zero-trust** — security at the application layer, not just the network perimeter
-- **Cryptographic identity management** — X.509 PKI for device authentication
-- **Dark services** — eliminating attack surface by removing open ports entirely
-- **Granular revocation** — per-device access control without network reconfiguration
-- **Audit compliance** — cryptographically-verifiable connection logs
-
-Relevant to roles at: Siemens, Bosch, ABB, Honeywell, Schneider Electric, and any company working on Industry 4.0 / IIoT security.
