@@ -178,7 +178,7 @@ if AI_MODE == "local":
 elif AI_MODE == "cloud_fast":
     from langchain_groq import ChatGroq
     llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model="qwen/qwen3.6-27b",
         groq_api_key=os.getenv("GROQ_API_KEY"),
         temperature=0,
         max_tokens=512
@@ -188,7 +188,7 @@ elif AI_MODE == "cloud_fast":
 else:
     from langchain_groq import ChatGroq
     llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model="qwen/qwen3.6-27b",
         groq_api_key=os.getenv("GROQ_API_KEY"),
         temperature=0,
         max_tokens=1024
