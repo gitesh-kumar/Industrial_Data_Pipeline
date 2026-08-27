@@ -193,14 +193,16 @@ else:
         model="qwen/qwen3.6-27b",
         groq_api_key=os.getenv("GROQ_API_KEY"),
         temperature=0,
-        max_tokens=1024
+        max_tokens=1024,
+        reasoning_effort="none"
     )
     
     print("☁️  CLOUD AGENT mode (Groq/ReAct) — flexible & powerful")
     agent_executor = create_sql_agent(
         llm, db=db, verbose=False,
         handle_parsing_errors=True,
-        max_iterations=15, max_execution_time=120, prefix="/no_think\nYou are an agent designed to interact with a SQL database."
+        max_iterations=15, max_execution_time=120,
+        reasoning_effort="none"
     )
 
 
