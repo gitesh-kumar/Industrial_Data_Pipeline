@@ -182,7 +182,7 @@ elif AI_MODE == "cloud_fast":
         groq_api_key=os.getenv("GROQ_API_KEY"),
         temperature=0,
         max_tokens=512,
-        prefix="/no_think\nYou are an agent designed to interact with a SQL database."
+        reasoning_effort="none"
     )
     
     print("⚡ CLOUD FAST mode (Groq/Intent Router) — reliable & cheap")
