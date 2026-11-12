@@ -67,7 +67,7 @@ class SmartFactorySimulator:
             records.append({
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'machine_id': machine_id,
-                'machine_type': machine_id.split('_')[0] + '_' + machine_id.split('_')[1] if 'EXCHANGER' not in machine_id else 'HEAT_EXCHANGER',
+                'machine_type': machine_id.rsplit('_', 1)[0],
                 'vibration_rms': round(base_vibration, 4),
                 'temp_c': round(temp, 2),
                 'power_kw': round(power, 2),

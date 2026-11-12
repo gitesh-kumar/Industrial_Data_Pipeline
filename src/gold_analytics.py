@@ -4,12 +4,20 @@ from energy_api import EnergyMarketAPI
 
 engine = create_engine('sqlite:///factory_lakehouse.db')
 
+# Gold looks at the newest WINDOW_HOURS of data, counted back from the
+# newest reading (not from today, so old data still produces a result).
+WINDOW_HOURS = 24
+
 def generate_financial_gold():
     api = EnergyMarketAPI()
     market_data = api.get_current_price()
     current_price_eur = market_data['price']
 
     print(f"⚡ Current Energy Price: {current_price_eur} EUR/MWh")
+
+    latest = pd.read_sql(
+        "SELECT MAX(timestamp) AS t FROM silver_telemetry", engine
+    )['t'].iloc[0]
 
     query = f"""
     SELECT 
@@ -33,6 +41,7 @@ def generate_financial_gold():
             ELSE 'OPTIMAL'
         END as efficiency_status
     FROM silver_telemetry
+    WHERE timestamp >= datetime('{latest}', '-{WINDOW_HOURS} hours')
     GROUP BY machine_id, machine_type
     """
 
@@ -51,6 +60,8 @@ def generate_financial_gold():
 
     df['recommendation'] = df.apply(get_recommendation, axis=1)
     df['energy_price_eur_mwh'] = current_price_eur
+    df['window_hours'] = WINDOW_HOURS
+    df['as_of'] = latest
 
     print("\n🏆 GOLD LAYER: OPERATIONAL PROFITABILITY")
     print(df[['machine_id', 'avg_risk_score', 'hourly_energy_cost_eur', 'recommendation']])
