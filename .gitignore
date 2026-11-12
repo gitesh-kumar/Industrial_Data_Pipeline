@@ -19,3 +19,8 @@ data/*.csv
 # Ziti Identities (contain private keys - never commit!)
 ziti/identities/
 *.jwt
+#Snowflake private key files
+*.p8
+# Models
+models/*
+data/*
