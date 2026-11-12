@@ -1,0 +1,40 @@
+-- 02_silver.sql
+-- Cleaned layer as a dynamic table. Role: INDUSTRIAL_TRANSFORM.
+--
+-- Same logic as src/transformer.py with one deliberate difference:
+-- FAILURE_SPIKE ranks above DEGRADATION_WARN. In the SQLite version the order is
+-- the other way round, which hides most failures once a machine is already worn
+-- (52 failures in the simulated history, only 16 visible as spikes).
+--
+-- Recreating this table removes the data quality checks attached to it.
+-- Run 03_quality_checks.sql afterwards.
+
+USE WAREHOUSE INDUSTRIAL_WH;
+
+CREATE OR REPLACE DYNAMIC TABLE INDUSTRIAL_LAKEHOUSE.SILVER.SILVER_TELEMETRY(
+  READING_TIMESTAMP, MACHINE_ID, MACHINE_TYPE, VIBRATION_RMS, TEMP_C, POWER_KW,
+  FAILURE_SPIKE, DEGRADATION, QUALITY_FLAG, TEMP_F, RISK_SCORE
+) TARGET_LAG = '1 hour' REFRESH_MODE = AUTO INITIALIZE = ON_CREATE WAREHOUSE = INDUSTRIAL_WH
+AS
+WITH deduped AS (
+  SELECT DISTINCT
+    READING_TIMESTAMP, MACHINE_ID, MACHINE_TYPE,
+    VIBRATION_RMS, TEMP_C, POWER_KW, FAILURE_SPIKE, DEGRADATION
+  FROM INDUSTRIAL_LAKEHOUSE.BRONZE.SENSOR_READINGS
+)
+SELECT
+  READING_TIMESTAMP, MACHINE_ID, MACHINE_TYPE,
+  VIBRATION_RMS, TEMP_C, POWER_KW, FAILURE_SPIKE, DEGRADATION,
+  CASE
+    WHEN FAILURE_SPIKE      THEN 'FAILURE_SPIKE'
+    WHEN DEGRADATION        THEN 'DEGRADATION_WARN'
+    WHEN VIBRATION_RMS > 10 THEN 'VIBRATION_CRITICAL'
+    WHEN TEMP_C > 120       THEN 'HIGH_TEMP_WARN'
+    ELSE 'PASS'
+  END AS QUALITY_FLAG,
+  TEMP_C * 9 / 5 + 32 AS TEMP_F,
+  ROUND(
+      VIBRATION_RMS / MAX(VIBRATION_RMS) OVER () * 60
+    + TEMP_C        / MAX(TEMP_C)        OVER () * 40
+  , 2) AS RISK_SCORE
+FROM deduped;
