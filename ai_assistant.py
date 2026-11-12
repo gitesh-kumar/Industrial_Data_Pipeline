@@ -79,7 +79,9 @@ Rules for the query:
 ANSWER_INSTRUCTIONS = """Answer the question using only the rows below.
 - Use only machine ids and numbers that appear in the rows.
 - Do not add causes, advice or facts that the rows do not show.
-- Write 1 to 3 plain sentences. Give units where the column name implies one
+- If the rows list several machines or groups, name every one of them when there
+  are 10 or fewer. With more than 10, give the count and name the top three.
+- Write 1 to 3 plain sentences (a list of names may need a little more). Give units where the column name implies one
   (kW, degrees C, EUR per hour).
 """
 
