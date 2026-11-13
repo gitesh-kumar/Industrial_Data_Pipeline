@@ -127,6 +127,36 @@ def get_machine_risk(machine_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/energy")
+def energy():
+    try:
+        from src.energy_costs import compute_energy
+        return compute_energy()
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/maintenance")
+def maintenance():
+    try:
+        from src.board import maintenance_list
+        return maintenance_list()
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/machines/{machine_id}/history")
+def machine_history(machine_id: str):
+    try:
+        from src.board import machine_history as history
+        return history(machine_id)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/pipeline/health")
 def pipeline_health():
     try:

@@ -1,1142 +1,376 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Industrial AI Command Center</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Industrial Data Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono&display=swap">
 <style>
-  :root {
-    --bg: #0a0c0f;
-    --bg2: #0f1318;
-    --bg3: #141920;
-    --panel: #111620;
-    --border: #1e2a38;
-    --border2: #243040;
-    --amber: #f59e0b;
-    --amber2: #fbbf24;
-    --amber-dim: rgba(245,158,11,0.12);
-    --amber-glow: rgba(245,158,11,0.06);
-    --green: #10b981;
-    --green-dim: rgba(16,185,129,0.12);
-    --red: #ef4444;
-    --red-dim: rgba(239,68,68,0.12);
-    --yellow: #eab308;
-    --yellow-dim: rgba(234,179,8,0.12);
-    --blue: #3b82f6;
-    --blue-dim: rgba(59,130,246,0.12);
-    --text: #e2e8f0;
-    --text2: #94a3b8;
-    --text3: #475569;
-    --mono: 'Share Tech Mono', monospace;
-    --display: 'Barlow Condensed', sans-serif;
-    --body: 'Barlow', sans-serif;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--body);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Scanline overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.03) 2px,
-      rgba(0,0,0,0.03) 4px
-    );
-    pointer-events: none;
-    z-index: 1000;
-  }
-
-  /* Grid background */
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-image:
-      linear-gradient(rgba(245,158,11,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(245,158,11,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* ── HEADER ── */
-  header {
-    position: relative;
-    z-index: 10;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg2);
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-  }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .logo-mark {
-    width: 36px;
-    height: 36px;
-    border: 1.5px solid var(--amber);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-
-  .logo-mark::before {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border: 1.5px solid var(--amber);
-    transform: rotate(45deg);
-  }
-
-  .logo-mark::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    background: var(--amber);
-    position: absolute;
-  }
-
-  .header-title {
-    font-family: var(--display);
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text);
-  }
-
-  .header-subtitle {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    color: var(--amber);
-    letter-spacing: 0.1em;
-  }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    color: var(--text2);
-    letter-spacing: 0.05em;
-  }
-
-  .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  #clock {
-    font-family: var(--mono);
-    font-size: 0.85rem;
-    color: var(--amber);
-    letter-spacing: 0.1em;
-  }
-
-  /* ── NAV TABS ── */
-  nav {
-    position: relative;
-    z-index: 10;
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex;
-    gap: 0;
-  }
-
-  .tab {
-    font-family: var(--display);
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text3);
-    padding: 0.85rem 1.5rem;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    border: none;
-    background: none;
-  }
-
-  .tab:hover { color: var(--text2); }
-
-  .tab.active {
-    color: var(--amber);
-    border-bottom: 2px solid var(--amber);
-  }
-
-  /* ── MAIN LAYOUT ── */
-  main {
-    position: relative;
-    z-index: 10;
-    padding: 1.5rem 2rem;
-    max-width: 1600px;
-    margin: 0 auto;
-  }
-
-  .page { display: none; }
-  .page.active { display: block; }
-
-  /* ── KPI ROW ── */
-  .kpi-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .kpi-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 1.25rem 1.5rem;
-    position: relative;
-    overflow: hidden;
-    animation: fadeIn 0.5s ease forwards;
-    opacity: 0;
-  }
-
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px;
-    height: 100%;
-  }
-
-  .kpi-card.amber::before { background: var(--amber); }
-  .kpi-card.green::before { background: var(--green); }
-  .kpi-card.red::before { background: var(--red); }
-  .kpi-card.blue::before { background: var(--blue); }
-
-  .kpi-label {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    color: var(--text3);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
-  .kpi-value {
-    font-family: var(--display);
-    font-size: 2.2rem;
-    font-weight: 700;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-  }
-
-  .kpi-card.amber .kpi-value { color: var(--amber); }
-  .kpi-card.green .kpi-value { color: var(--green); }
-  .kpi-card.red .kpi-value { color: var(--red); }
-  .kpi-card.blue .kpi-value { color: var(--blue); }
-
-  .kpi-sub {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    color: var(--text3);
-  }
-
-  /* ── MACHINE GRID ── */
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .section-title {
-    font-family: var(--display);
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text2);
-  }
-
-  .section-line {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .machine-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .machine-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 1.25rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-    animation: fadeIn 0.5s ease forwards;
-    opacity: 0;
-  }
-
-  .machine-card:hover {
-    border-color: var(--border2);
-    background: var(--bg3);
-    transform: translateY(-1px);
-  }
-
-  .machine-card.status-optimal { border-left: 3px solid var(--green); }
-  .machine-card.status-warning { border-left: 3px solid var(--yellow); }
-  .machine-card.status-critical { border-left: 3px solid var(--red); }
-
-  .machine-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-  }
-
-  .machine-id {
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    color: var(--amber);
-    letter-spacing: 0.05em;
-  }
-
-  .machine-type {
-    font-family: var(--display);
-    font-size: 0.65rem;
-    color: var(--text3);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-top: 0.2rem;
-  }
-
-  .status-badge {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
-    padding: 0.2rem 0.5rem;
-    text-transform: uppercase;
-  }
-
-  .status-badge.OPTIMAL { background: var(--green-dim); color: var(--green); }
-  .status-badge.WARNING { background: var(--yellow-dim); color: var(--yellow); }
-  .status-badge.CRITICAL { background: var(--red-dim); color: var(--red); }
-
-  .machine-metrics {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .metric {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .metric-label {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    color: var(--text3);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .metric-value {
-    font-family: var(--display);
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  /* Risk bar */
-  .risk-bar-container {
-    margin-top: 0.5rem;
-  }
-
-  .risk-bar-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.3rem;
-  }
-
-  .risk-bar-label span {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .risk-bar-track {
-    height: 3px;
-    background: var(--border);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .risk-bar-fill {
-    height: 100%;
-    transition: width 1s ease;
-  }
-
-  .recommendation-tag {
-    margin-top: 0.75rem;
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
-    padding: 0.25rem 0.5rem;
-    display: inline-block;
-    text-transform: uppercase;
-  }
-
-  .rec-CONTINUE { background: var(--green-dim); color: var(--green); }
-  .rec-REDUCE_LOAD { background: var(--yellow-dim); color: var(--yellow); }
-  .rec-SCHEDULE_MAINTENANCE { background: rgba(249,115,22,0.12); color: #f97316; }
-  .rec-IMMEDIATE_SHUTDOWN { background: var(--red-dim); color: var(--red); }
-
-  /* ── AI QUERY PAGE ── */
-  .query-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    height: calc(100vh - 180px);
-  }
-
-  .query-panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .panel-header {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .panel-title {
-    font-family: var(--display);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text2);
-  }
-
-  .panel-dot {
-    width: 6px;
-    height: 6px;
-    background: var(--amber);
-  }
-
-  /* Chat messages */
-  .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-
-  .message {
-    animation: fadeIn 0.3s ease;
-  }
-
-  .message.user {
-    align-self: flex-end;
-    max-width: 80%;
-  }
-
-  .message.assistant {
-    align-self: flex-start;
-    max-width: 100%;
-  }
-
-  .message-bubble {
-    padding: 0.75rem 1rem;
-    font-size: 0.85rem;
-    line-height: 1.6;
-  }
-
-  .message.user .message-bubble {
-    background: var(--amber-dim);
-    border: 1px solid rgba(245,158,11,0.2);
-    color: var(--amber2);
-    font-family: var(--mono);
-    font-size: 0.78rem;
-  }
-
-  .message.assistant .message-bubble {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    color: var(--text);
-  }
-
-  .message-label {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
-    color: var(--text3);
-    margin-bottom: 0.3rem;
-    text-transform: uppercase;
-  }
-
-  .answer-text {
-    font-family: var(--display);
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--amber);
-    margin-bottom: 0.5rem;
-  }
-
-  .answer-body {
-    font-size: 0.85rem;
-    color: var(--text2);
-    line-height: 1.6;
-  }
-
-  /* SQL block */
-  .sql-block {
-    margin-top: 0.75rem;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    padding: 0.75rem;
-    border-left: 2px solid var(--amber);
-  }
-
-  .sql-label {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    color: var(--amber);
-    letter-spacing: 0.1em;
-    margin-bottom: 0.4rem;
-    text-transform: uppercase;
-  }
-
-  .sql-code {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    color: var(--text2);
-    white-space: pre-wrap;
-    line-height: 1.6;
-  }
-
-  /* Input area */
-  .chat-input-area {
-    padding: 1rem 1.25rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .chat-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    padding: 0.75rem 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-    letter-spacing: 0.03em;
-  }
-
-  .chat-input:focus { border-color: var(--amber); }
-  .chat-input::placeholder { color: var(--text3); }
-
-  .send-btn {
-    background: var(--amber);
-    color: var(--bg);
-    border: none;
-    padding: 0.75rem 1.25rem;
-    font-family: var(--display);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .send-btn:hover { background: var(--amber2); }
-  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* Right panel — suggested queries */
-  .suggestions-panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .suggestion-list {
-    padding: 1.25rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .suggestion-chip {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    padding: 0.75rem 1rem;
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    color: var(--text2);
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: left;
-    letter-spacing: 0.03em;
-    line-height: 1.4;
-  }
-
-  .suggestion-chip:hover {
-    border-color: var(--amber);
-    color: var(--amber);
-    background: var(--amber-glow);
-  }
-
-  .suggestion-chip::before {
-    content: '→ ';
-    color: var(--text3);
-  }
-
-  /* Loading */
-  .loading-dots {
-    display: flex;
-    gap: 4px;
-    padding: 0.5rem 0;
-  }
-
-  .loading-dots span {
-    width: 6px;
-    height: 6px;
-    background: var(--amber);
-    animation: blink 1.2s infinite;
-  }
-
-  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-  @keyframes blink {
-    0%, 80%, 100% { opacity: 0.2; }
-    40% { opacity: 1; }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Pipeline health page */
-  .health-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 1.5rem;
-  }
-
-  .health-score-panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .health-score-value {
-    font-family: var(--display);
-    font-size: 5rem;
-    font-weight: 700;
-    line-height: 1;
-    margin: 1rem 0;
-  }
-
-  .health-breakdown {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 1.5rem;
-  }
-
-  .breakdown-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .breakdown-row:last-child { border-bottom: none; }
-
-  .breakdown-flag {
-    font-family: var(--mono);
-    font-size: 0.75rem;
-    color: var(--text2);
-    letter-spacing: 0.05em;
-  }
-
-  .breakdown-count {
-    font-family: var(--display);
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-
-  /* Error state */
-  .error-msg {
-    font-family: var(--mono);
-    font-size: 0.72rem;
-    color: var(--red);
-    padding: 0.5rem;
-    background: var(--red-dim);
-    border: 1px solid rgba(239,68,68,0.2);
-  }
-
-  /* Responsive */
-  @media (max-width: 900px) {
-    .kpi-row { grid-template-columns: repeat(2, 1fr); }
-    .query-layout { grid-template-columns: 1fr; }
-    .health-grid { grid-template-columns: 1fr; }
-  }
+:root{
+  --ground:#d8dbde; --bar:#c3c8cc; --panel:#e6e8ea; --card:#f1f2f3; --white:#fff;
+  --line:#b5bbc0; --grid:#c3c8cc; --ink:#1f262c; --mut:#59636b; --bar-grey:#8a949b;
+  --red:#c4262e; --amber:#b05f00;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.45 "IBM Plex Sans",Arial,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.topbar{background:var(--bar);border-bottom:1px solid #a9afb4;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 24px;padding:0 28px}
+.tabs{display:flex;flex-wrap:wrap}
+.tab{background:transparent;border:0;border-bottom:3px solid transparent;padding:12px 20px;font-size:15px;font-weight:500;color:var(--mut)}
+.tab[aria-selected="true"]{background:var(--ground);border-bottom-color:var(--ink);color:var(--ink);font-weight:600}
+.meta{padding:12px 0;font-size:13px;color:var(--mut)}
+main{padding:22px 28px;display:flex;flex-direction:column;gap:20px}
+.page[hidden]{display:none}
+.page{display:flex;flex-direction:column;gap:20px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.panel{background:var(--panel);border:1px solid var(--line);padding:16px 20px;min-width:0}
+.panel h2{margin:0 0 4px;font-size:17px;font-weight:600}
+.sub{color:var(--mut);font-size:13px;margin:0 0 8px}
+.tiles{display:flex;flex-wrap:wrap;gap:16px}
+.tile{flex:1 1 220px;background:var(--panel);border:1px solid var(--line);padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+.tile .l{color:var(--mut);font-size:14px}
+.tile .v{font-size:30px;font-weight:600;font-variant-numeric:tabular-nums}
+.tile .s{color:var(--mut);font-size:13px}
+.note{color:var(--mut);font-size:14px;padding:4px 0}
+.cols{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.col{flex:1 1 280px;min-width:0;background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--bar-grey);padding:12px;display:flex;flex-direction:column;gap:8px}
+.col.act{border-top-color:var(--red)} .col.plan{border-top-color:var(--amber)}
+.col h3{margin:0 0 4px;font-size:15px;font-weight:600;display:flex;justify-content:space-between}
+.mcard{width:100%;text-align:left;background:var(--card);border:1px solid var(--line);padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.mcard[aria-pressed="true"]{background:var(--white);border:2px solid var(--ink)}
+.mcard b{display:block}.mcard small{display:block;color:var(--mut);font-size:13px;padding-top:2px}
+.mcard .d{text-align:right}.mcard .d span{display:block;font-size:26px;font-weight:600;line-height:1}.mcard .d small{font-size:12px}
+.act .mcard .d span{color:var(--red)} .plan .mcard .d span{color:var(--amber)}
+.detail{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.detail .txt{flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.detail .chart{flex:2 1 480px;min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 24px;color:var(--mut);font-size:13px;padding-top:6px}
+.legend i{display:inline-block;width:22px;vertical-align:middle;border-top:3px solid var(--ink);margin-right:6px}
+.legend i.p{border-top:2px dashed var(--red)}
+.ask{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.ask .main{flex:3 1 560px;min-width:0;display:flex;flex-direction:column;gap:18px}
+.ask .side{flex:1 1 280px;max-width:380px;display:flex;flex-direction:column;gap:10px}
+.askrow{display:flex;gap:10px}
+.askrow input{flex:1;min-width:0;font:inherit;font-size:17px;padding:14px 16px;border:1px solid var(--bar-grey);background:var(--white);color:var(--ink)}
+.btn{background:var(--ink);color:#fff;border:0;padding:14px 26px;font-size:17px;font-weight:600}
+.btn[disabled]{opacity:.6;cursor:wait}
+.chip{width:100%;text-align:left;border:1px solid var(--bar-grey);background:var(--card);padding:12px 14px;font-size:15px}
+.chip:hover{background:var(--white)}
+.qa .q{color:var(--mut);font-size:15px}
+.qa .a{font-size:19px;line-height:1.5;max-width:70ch;margin:8px 0 0;white-space:pre-wrap}
+.qa.err .a{color:var(--red)}
+details{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+summary{font-weight:600;font-size:16px;cursor:pointer}
+pre.sql{background:var(--white);border:1px solid var(--line);padding:12px 14px;font:14px/1.6 "IBM Plex Mono",monospace;white-space:pre-wrap;margin:8px 0}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--white);border:1px solid var(--line)}
+th{text-align:left;padding:10px 12px;font-weight:500;color:var(--mut);font-size:13px}
+td{padding:7px 12px;border-top:1px solid var(--grid)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.score{font-size:48px;font-weight:600}
+svg text{font-family:inherit}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="header-left">
-    <div class="logo-mark"></div>
-    <div>
-      <div class="header-title">Industrial AI Command Center</div>
-      <div class="header-subtitle">PREDICTIVE MAINTENANCE & FINANCIAL RISK ENGINE</div>
-    </div>
+<div class="topbar">
+  <div class="tabs" role="tablist" aria-label="Pages">
+    <button class="tab" role="tab" id="tab-dash" aria-controls="p-dash" aria-selected="true" data-page="dash">Dashboard</button>
+    <button class="tab" role="tab" id="tab-board" aria-controls="p-board" aria-selected="false" data-page="board">Maintenance board</button>
+    <button class="tab" role="tab" id="tab-ai" aria-controls="p-ai" aria-selected="false" data-page="ai">AI Query</button>
+    <button class="tab" role="tab" id="tab-health" aria-controls="p-health" aria-selected="false" data-page="health">Pipeline Health</button>
   </div>
-  <div class="header-right">
-    <div class="status-indicator">
-      <div class="status-dot"></div>
-      PIPELINE ACTIVE
-    </div>
-    <div id="clock">--:--:--</div>
-  </div>
-</header>
-
-<nav>
-  <button class="tab active" onclick="showPage('dashboard')">Dashboard</button>
-  <button class="tab" onclick="showPage('ai-query')">AI Query</button>
-  <button class="tab" onclick="showPage('pipeline')">Pipeline Health</button>
-</nav>
-
+  <div class="meta">All data is simulated. <span id="asof">Loading</span></div>
+</div>
 <main>
 
-  <!-- ── DASHBOARD PAGE ── -->
-  <div class="page active" id="page-dashboard">
-    <div class="kpi-row" id="kpi-row">
-      <div class="kpi-card amber" style="animation-delay:0.1s">
-        <div class="kpi-label">Total Machines</div>
-        <div class="kpi-value" id="kpi-total">--</div>
-        <div class="kpi-sub">monitored assets</div>
-      </div>
-      <div class="kpi-card red" style="animation-delay:0.2s">
-        <div class="kpi-label">Attention Required</div>
-        <div class="kpi-value" id="kpi-attention">--</div>
-        <div class="kpi-sub">machines flagged</div>
-      </div>
-      <div class="kpi-card green" style="animation-delay:0.3s">
-        <div class="kpi-label">Hourly Energy Cost</div>
-        <div class="kpi-value" id="kpi-cost">--</div>
-        <div class="kpi-sub">EUR/hour total</div>
-      </div>
-      <div class="kpi-card blue" style="animation-delay:0.4s">
-        <div class="kpi-label">Avg Risk Score</div>
-        <div class="kpi-value" id="kpi-risk">--</div>
-        <div class="kpi-sub">across all machines</div>
-      </div>
-    </div>
-
-    <div class="section-header">
-      <div class="section-title">Machine Status</div>
-      <div class="section-line"></div>
-      <div style="font-family:var(--mono);font-size:0.65rem;color:var(--text3)" id="last-updated">LOADING...</div>
-    </div>
-
-    <div class="machine-grid" id="machine-grid">
-      <!-- populated by JS -->
-    </div>
+<section class="page" id="p-dash" role="tabpanel" aria-labelledby="tab-dash">
+  <div class="tiles" id="tiles"></div>
+  <div class="row">
+    <div class="panel" style="flex:1 1 440px"><h2>Electricity price today, € per MWh</h2><p class="sub">German day-ahead price per hour. The most expensive hours are amber.</p><div id="c-price"></div></div>
+    <div class="panel" style="flex:1 1 440px"><h2>Plant energy cost today, € per hour</h2><p class="sub">Load of pumps, compressors, motors and heat exchangers times the hourly price. Turbines and generators produce power and are not counted.</p><div id="c-cost"></div></div>
   </div>
+  <div class="panel"><h2>Energy cost per machine, last 30 days</h2><p class="sub">Consumers only.</p><div id="c-machines"></div></div>
+</section>
 
-  <!-- ── AI QUERY PAGE ── -->
-  <div class="page" id="page-ai-query">
-    <div class="query-layout">
-      <div class="query-panel">
-        <div class="panel-header">
-          <div class="panel-dot"></div>
-          <div class="panel-title">AI Agent Interface</div>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-          <div class="message assistant">
-            <div class="message-label">System</div>
-            <div class="message-bubble">
-              <div class="answer-body">Agent online. I have access to real-time telemetry, energy costs, risk scores, and operational recommendations for all 17 machines. Ask me anything.</div>
-            </div>
-          </div>
-        </div>
-        <div class="chat-input-area">
-          <input class="chat-input" id="query-input" placeholder="Ask about machines, costs, risks..." />
-          <button class="send-btn" id="send-btn" onclick="sendQuery()">Execute</button>
-        </div>
-      </div>
+<section class="page" id="p-board" role="tabpanel" aria-labelledby="tab-board" hidden>
+  <div class="cols" id="cols"></div>
+  <div class="panel" id="detail"><p class="note">Click a machine above to show its history here.</p></div>
+</section>
 
-      <div class="suggestions-panel">
-        <div class="panel-header">
-          <div class="panel-dot"></div>
-          <div class="panel-title">Suggested Queries</div>
-        </div>
-        <div class="suggestion-list">
-          <button class="suggestion-chip" onclick="fillQuery(this)">Which machine has the highest risk score?</button>
-          <button class="suggestion-chip" onclick="fillQuery(this)">Which machine type consumes the most energy?</button>
-          <button class="suggestion-chip" onclick="fillQuery(this)">Which machines require maintenance based on highest failure spikes?</button>
-          <button class="suggestion-chip" onclick="fillQuery(this)">What is the total hourly energy cost of all generators?</button>
-          <button class="suggestion-chip" onclick="fillQuery(this)">Which machines had failure spikes?</button>
-          <button class="suggestion-chip" onclick="fillQuery(this)">Compare average temperature across machine types. group them into broader categories to calculate a single average temperature per type.</button>
-          <button class="suggestion-chip" onclick="fillQuery(this)">What is the most efficient machine right now based on energy consumption?</button>
-          <button class="suggestion-chip" onclick="fillQuery(this)">Which generator has the highest power consumption?</button>
-          <button class="suggestion-chip" onclick="fillQuery(this)">Which machines have a warning status?</button>
-        </div>
-      </div>
+<section class="page" id="p-ai" role="tabpanel" aria-labelledby="tab-ai" hidden>
+  <div class="ask">
+    <div class="main">
+      <form class="askrow" id="askform">
+        <input id="q" type="text" maxlength="500" placeholder="Ask about the machines" aria-label="Your question" autocomplete="off">
+        <button class="btn" id="askbtn" type="submit">Ask</button>
+      </form>
+      <div id="answers" style="display:flex;flex-direction:column;gap:18px"></div>
     </div>
+    <div class="panel side"><h2>Example questions</h2><div id="chips" style="display:flex;flex-direction:column;gap:10px"></div></div>
   </div>
+</section>
 
-  <!-- ── PIPELINE HEALTH PAGE ── -->
-  <div class="page" id="page-pipeline">
-    <div class="health-grid">
-      <div class="health-score-panel">
-        <div class="section-title">Pipeline Health Score</div>
-        <div class="health-score-value" id="health-score-value">--</div>
-        <div id="health-status-badge" class="status-badge" style="font-size:0.75rem;padding:0.4rem 1rem">LOADING</div>
-        <div style="margin-top:1.5rem;font-family:var(--mono);font-size:0.65rem;color:var(--text3);text-align:center;line-height:1.8" id="health-meta">
-          --
-        </div>
-      </div>
-      <div class="health-breakdown">
-        <div class="panel-header" style="padding:0;padding-bottom:1rem;margin-bottom:1rem;border-bottom:1px solid var(--border)">
-          <div class="panel-dot"></div>
-          <div class="panel-title">Quality Flag Breakdown</div>
-        </div>
-        <div id="breakdown-list">
-          <div style="font-family:var(--mono);font-size:0.72rem;color:var(--text3)">Loading...</div>
-        </div>
-      </div>
-    </div>
-  </div>
+<section class="page" id="p-health" role="tabpanel" aria-labelledby="tab-health" hidden>
+  <div id="health"><p class="note">Loading</p></div>
+</section>
 
 </main>
-
 <script>
-  // ── CONFIG ──
-  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://127.0.0.1:8000'
-    : 'https://industrialdatapipeline.up.railway.app';
+"use strict";
+const API_BASE = window.location.origin;
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const eur = v => Math.round(v).toLocaleString("en-US") + " €";
+const MUT = "#59636b", INK = "#1f262c", RED = "#c4262e", AMB = "#b05f00", GREY = "#8a949b", GRID = "#c3c8cc";
+const CONSUMERS = ["PUMP", "COMPRESSOR", "MOTOR", "HEAT_EXCHANGER"];
 
-  // ── CLOCK ──
-  function updateClock() {
-    const now = new Date();
-    document.getElementById('clock').textContent =
-      now.toTimeString().slice(0,8);
+async function api(path, opts) {
+  const r = await fetch(API_BASE + path, opts);
+  if (!r.ok) {
+    let msg = "";
+    try { msg = (await r.json()).detail || ""; } catch (e) {}
+    const err = new Error(msg || ("HTTP " + r.status));
+    err.status = r.status;
+    throw err;
   }
-  setInterval(updateClock, 1000);
-  updateClock();
+  return r.json();
+}
+const unavailable = (what) => `<p class="note">${esc(what)} is not available yet.</p>`;
 
-  // ── TABS ──
-  function showPage(name) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('page-' + name).classList.add('active');
-    event.target.classList.add('active');
-    if (name === 'pipeline') loadPipelineHealth();
-  }
+/* ---------- tabs ---------- */
+const loaded = {};
+function showPage(name) {
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.page === name)));
+  document.querySelectorAll(".page").forEach(p => { p.hidden = p.id !== "p-" + name; });
+  if (!loaded[name]) { loaded[name] = true; ({dash: loadDash, board: loadBoard, ai: initAI, health: loadHealth}[name])(); }
+}
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showPage(t.dataset.page)));
 
-  // ── RISK COLOR ──
-  function riskColor(score) {
-    if (score >= 70) return 'var(--red)';
-    if (score >= 45) return 'var(--yellow)';
-    return 'var(--green)';
-  }
-
-  function statusClass(status) {
-    if (!status) return 'OPTIMAL';
-    if (status.includes('CRITICAL')) return 'CRITICAL';
-    if (status.includes('WARNING') || status.includes('WARN')) return 'WARNING';
-    return 'OPTIMAL';
-  }
-
-  // ── LOAD MACHINES ──
-  async function loadMachines() {
-    try {
-      const res = await fetch(`${API_BASE}/machines`);
-      const data = await res.json();
-      const machines = data.machines || [];
-
-      // KPIs
-      const total = machines.length;
-      const attention = machines.filter(m => m.recommendation !== 'CONTINUE').length;
-      const totalCost = machines.reduce((s, m) => s + (m.hourly_energy_cost_eur || 0), 0);
-      const avgRisk = machines.reduce((s, m) => s + (m.avg_risk_score || 0), 0) / total;
-
-      document.getElementById('kpi-total').textContent = total;
-      document.getElementById('kpi-attention').textContent = attention;
-      document.getElementById('kpi-cost').textContent = '€' + totalCost.toFixed(2);
-      document.getElementById('kpi-risk').textContent = avgRisk.toFixed(1);
-      document.getElementById('last-updated').textContent =
-        'UPDATED ' + new Date().toTimeString().slice(0,8);
-
-      // Machine cards
-      const grid = document.getElementById('machine-grid');
-      grid.innerHTML = '';
-
-      machines.forEach((m, i) => {
-        const sc = statusClass(m.efficiency_status);
-        const risk = m.avg_risk_score || 0;
-        const card = document.createElement('div');
-        card.className = `machine-card status-${sc.toLowerCase()}`;
-        card.style.animationDelay = (i * 0.04) + 's';
-        card.innerHTML = `
-          <div class="machine-header">
-            <div>
-              <div class="machine-id">${m.machine_id}</div>
-              <div class="machine-type">${(m.machine_type || '').replace(/_/g,' ')}</div>
-            </div>
-            <div class="status-badge ${sc}">${sc}</div>
-          </div>
-          <div class="machine-metrics">
-            <div class="metric">
-              <div class="metric-label">Avg Temp</div>
-              <div class="metric-value">${(m.avg_temp||0).toFixed(1)}°C</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Energy Cost</div>
-              <div class="metric-value">€${(m.hourly_energy_cost_eur||0).toFixed(3)}</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Avg Vibration</div>
-              <div class="metric-value">${(m.avg_vibration||0).toFixed(2)}</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Failure Spikes</div>
-              <div class="metric-value">${m.failure_spike_count || 0}</div>
-            </div>
-          </div>
-          <div class="risk-bar-container">
-            <div class="risk-bar-label">
-              <span>Risk Score</span>
-              <span style="color:${riskColor(risk)}">${risk.toFixed(1)}</span>
-            </div>
-            <div class="risk-bar-track">
-              <div class="risk-bar-fill" style="width:${Math.min(risk,100)}%;background:${riskColor(risk)}"></div>
-            </div>
-          </div>
-          <div class="recommendation-tag rec-${m.recommendation}">${(m.recommendation||'').replace(/_/g,' ')}</div>
-        `;
-        grid.appendChild(card);
-      });
-
-    } catch(e) {
-      document.getElementById('machine-grid').innerHTML =
-        `<div class="error-msg">ERR: Cannot reach API at ${API_BASE}. Make sure the server is running.</div>`;
-    }
-  }
-
-  // ── PIPELINE HEALTH ──
-  async function loadPipelineHealth() {
-    try {
-      const res = await fetch(`${API_BASE}/pipeline/health`);
-      const data = await res.json();
-
-      const score = data.health_score_percent || 0;
-      const el = document.getElementById('health-score-value');
-      el.textContent = score.toFixed(1) + '%';
-      el.style.color = score >= 90 ? 'var(--green)' : score >= 70 ? 'var(--yellow)' : 'var(--red)';
-
-      const badge = document.getElementById('health-status-badge');
-      badge.textContent = data.status;
-      badge.className = `status-badge ${data.status === 'HEALTHY' ? 'OPTIMAL' : 'WARNING'}`;
-
-      const total = (data.breakdown || []).reduce((s, r) => s + r.count, 0);
-      document.getElementById('health-meta').innerHTML =
-        `TOTAL RECORDS: ${total}<br>LAST CHECKED: ${new Date().toTimeString().slice(0,8)}`;
-
-      const list = document.getElementById('breakdown-list');
-      list.innerHTML = '';
-      (data.breakdown || []).forEach(row => {
-        const colors = {
-          'PASS': 'var(--green)',
-          'HIGH_TEMP_WARN': 'var(--yellow)',
-          'VIBRATION_CRITICAL': 'var(--red)',
-          'FAILURE_SPIKE': 'var(--red)',
-          'DEGRADATION_WARN': '#f97316'
-        };
-        const color = colors[row.quality_flag] || 'var(--text2)';
-        const pct = ((row.count / total) * 100).toFixed(1);
-        list.innerHTML += `
-          <div class="breakdown-row">
-            <div class="breakdown-flag">${row.quality_flag}</div>
-            <div style="display:flex;align-items:center;gap:1rem">
-              <div style="font-family:var(--mono);font-size:0.7rem;color:var(--text3)">${pct}%</div>
-              <div class="breakdown-count" style="color:${color}">${row.count}</div>
-            </div>
-          </div>
-        `;
-      });
-    } catch(e) {
-      document.getElementById('health-score-value').textContent = 'ERR';
-    }
-  }
-
-  // ── AI QUERY ──
-  async function sendQuery() {
-    const input = document.getElementById('query-input');
-    const question = input.value.trim();
-    if (!question) return;
-
-    const messages = document.getElementById('chat-messages');
-    const btn = document.getElementById('send-btn');
-
-    // User message
-    messages.innerHTML += `
-      <div class="message user">
-        <div class="message-label">Operator</div>
-        <div class="message-bubble">${question}</div>
-      </div>
-    `;
-
-    // Loading
-    const loadingId = 'loading-' + Date.now();
-    messages.innerHTML += `
-      <div class="message assistant" id="${loadingId}">
-        <div class="message-label">AI Agent</div>
-        <div class="message-bubble">
-          <div class="loading-dots"><span></span><span></span><span></span></div>
-        </div>
-      </div>
-    `;
-
-    input.value = '';
-    btn.disabled = true;
-    messages.scrollTop = messages.scrollHeight;
-
-    try {
-      const res = await fetch(`${API_BASE}/query`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
-      });
-      const data = await res.json();
-
-      const sqlBlock = (data.sql_queries_used && data.sql_queries_used.length > 0)
-        ? `<div class="sql-block">
-             <div class="sql-label">SQL Executed</div>
-             <div class="sql-code">${data.sql_queries_used.join('\n\n')}</div>
-           </div>`
-        : '';
-
-      const stepsInfo = data.total_steps
-        ? `<div style="font-family:var(--mono);font-size:0.6rem;color:var(--text3);margin-top:0.5rem">
-             ${data.total_steps} reasoning steps executed
-           </div>`
-        : '';
-
-      document.getElementById(loadingId).outerHTML = `
-        <div class="message assistant">
-          <div class="message-label">AI Agent</div>
-          <div class="message-bubble">
-            <div class="answer-text">${data.answer || data.detail}</div>
-            ${sqlBlock}
-            ${stepsInfo}
-          </div>
-        </div>
-      `;
-    } catch(e) {
-      document.getElementById(loadingId).outerHTML = `
-        <div class="message assistant">
-          <div class="message-label">AI Agent</div>
-          <div class="message-bubble">
-            <div class="error-msg">Connection failed. Check API status.</div>
-          </div>
-        </div>
-      `;
-    }
-
-    btn.disabled = false;
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  function fillQuery(btn) {
-    document.getElementById('query-input').value = btn.textContent.replace('→ ', '').trim();
-    document.getElementById('query-input').focus();
-    showPage('ai-query');
-    document.querySelectorAll('.tab')[1].classList.add('active');
-    document.querySelectorAll('.tab')[0].classList.remove('active');
-    document.querySelectorAll('.tab')[2].classList.remove('active');
-  }
-
-  // Enter to send
-  document.getElementById('query-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') sendQuery();
+/* ---------- machines (shared) ---------- */
+let machines = [];
+let extra = {};
+let machinesPromise = null;
+function getMachines() {
+  if (!machinesPromise) machinesPromise = api("/machines").then(async d => {
+    machines = d.machines || [];
+    try { const m = await api("/maintenance"); (m.machines || []).forEach(x => { extra[x.machine_id] = x; }); } catch (e) {}
+    const t = machines.map(m => m.as_of).filter(Boolean).sort().pop();
+    $("asof").textContent = t ? "Last reading " + t : "";
+    return machines;
   });
+  return machinesPromise;
+}
+const RANK = {ok: 0, watch: 1, plan: 2, act: 3};
+function group(m) {
+  let g = "ok";
+  if (m.recommendation === "IMMEDIATE_SHUTDOWN") g = "act";
+  else if (m.recommendation === "SCHEDULE_MAINTENANCE") g = "plan";
+  else if (m.recommendation === "REDUCE_LOAD" || m.efficiency_status === "WARNING") g = "watch";
+  const model = ({URGENT: "act", SOON: "plan", WATCH: "watch"})[(extra[m.machine_id] || {}).priority] || "ok";
+  return RANK[model] > RANK[g] ? model : g;
+}
+function reason(m, ruleOnly) {
+  const parts = [];
+  if (m.efficiency_status && m.efficiency_status !== "OPTIMAL")
+    parts.push(`Temperature ${Number(m.avg_temp).toFixed(0)} °C, ${m.efficiency_status.toLowerCase()} above ${m.efficiency_status === "CRITICAL" ? m.temp_crit_c : m.temp_warn_c} °C`);
+  if (m.failure_spike_count > 0) parts.push(`${m.failure_spike_count} failure spikes in ${m.window_hours} h`);
+  if (m.degradation_count > 0) parts.push(`${m.degradation_count} degradation flags`);
+  const x = extra[m.machine_id];
+  if (!ruleOnly && x && x.predicted_rul_days != null && ["URGENT", "SOON", "WATCH"].includes(x.priority))
+    parts.push(`Model: ${x.predicted_rul_days.toFixed(1)} days left`);
+  return parts.join(". ") || "Flagged by the rules";
+}
 
-  // ── INIT ──
-  loadMachines();
-  setInterval(loadMachines, 30000); // refresh every 30s
+/* ---------- charts ---------- */
+function barsSvg(vals, labels, ymax, hiFrom, ariaLabel, ymin = 0) {
+  const W = 560, H = 230, L = 48, B = 30, T = 10, n = vals.length, bw = (W - L - 8) / n;
+  const Y = v => T + (ymax - v) / (ymax - ymin) * (H - T - B);
+  const o = [`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(ariaLabel)}">`];
+  const step = (ymax - ymin) / 4;
+  for (let i = 0; i <= 4; i++) {
+    const v = ymin + step * i, y = Y(v);
+    o.push(`<line x1="${L}" x2="${W - 8}" y1="${y}" y2="${y}" stroke="${v === 0 ? MUT : GRID}"/><text x="${L - 6}" y="${y + 4}" text-anchor="end" font-size="12" fill="${MUT}">${Math.round(v)}</text>`);
+  }
+  vals.forEach((v, i) => {
+    const top = Y(Math.max(v, 0)), bottom = Y(Math.min(v, 0));
+    o.push(`<rect x="${L + i * bw + 2}" y="${top}" width="${Math.max(1, bw - 4)}" height="${Math.max(1, bottom - top)}" fill="${v >= hiFrom ? AMB : GREY}"><title>${esc(labels[i])}: ${Math.round(v * 100) / 100}</title></rect>`);
+  });
+  const lstep = Math.max(1, Math.round(n / 4));
+  labels.forEach((lb, i) => { if (i % lstep === 0 || i === n - 1) o.push(`<text x="${L + i * bw + bw / 2}" y="${H - 10}" text-anchor="middle" font-size="12" fill="${MUT}">${esc(lb)}</text>`); });
+  o.push("</svg>");
+  return o.join("");
+}
+function axis(vals) {
+  const mx = Math.max(...vals, 0), mn = Math.min(...vals, 0);
+  const top = niceMax(Math.max(mx, -mn, 1)), step = top / 4;
+  return {ymax: top, ymin: mn < 0 ? -step * Math.ceil(-mn / step) : 0};
+}
+function niceMax(v) {
+  const raw = (v || 1) / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  const nice = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
+  return nice * p * 4;
+}
+function highFrom(vals) { const s = [...vals].sort((a, b) => a - b); return s[Math.floor(s.length * 0.85)] ?? Infinity; }
+function machineBars(list) {
+  const rows = [...list].sort((a, b) => b.cost_30d_eur - a.cost_30d_eur);
+  const W = 1100, L = 160, rh = 22, H = rows.length * rh + 34;
+  const mx = niceMax(rows[0] ? rows[0].cost_30d_eur : 1);
+  const o = [`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Energy cost per machine, last 30 days, in euros">`];
+  for (let i = 0; i <= 4; i++) {
+    const v = mx / 4 * i, x = L + v / mx * (W - L - 20);
+    o.push(`<line x1="${x}" x2="${x}" y1="0" y2="${H - 26}" stroke="${GRID}"/><text x="${x}" y="${H - 8}" text-anchor="middle" font-size="12" fill="${MUT}">${Math.round(v).toLocaleString("en-US")} €</text>`);
+  }
+  rows.forEach((m, i) => {
+    const y = i * rh + 3;
+    o.push(`<text x="${L - 10}" y="${y + 13}" text-anchor="end" font-size="13" fill="${INK}">${esc(m.machine_id)}</text><rect x="${L}" y="${y}" width="${m.cost_30d_eur / mx * (W - L - 20)}" height="${rh - 7}" fill="${GREY}"><title>${esc(m.machine_id)}: ${eur(m.cost_30d_eur)}</title></rect>`);
+  });
+  o.push("</svg>");
+  return o.join("");
+}
+function historyChart(h) {
+  const days = h.days || [], W = 620, H = 290, L = 62, R = 22, T = 16, B = 58, n = days.length;
+  const all = days.flatMap(d => [d.true_days_left, d.predicted_days_left]).filter(v => v != null);
+  const ymax = Math.max(8, Math.ceil(Math.max(...all, 0) / 4) * 4);
+  const px = i => L + i / Math.max(1, n - 1) * (W - L - R), py = v => T + (1 - v / ymax) * (H - T - B);
+  const o = [`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Days left before failure over ${n} days, true value and model estimate">`];
+  const split = h.train_days;
+  if (split && split < n) {
+    const sx = px(split - 0.5);
+    o.push(`<rect x="${sx}" y="${T}" width="${W - R - sx}" height="${H - T - B}" fill="#e3e6e8"/>`);
+  }
+  for (let v = 0; v <= ymax; v += ymax / 4)
+    o.push(`<line x1="${L}" x2="${W - R}" y1="${py(v)}" y2="${py(v)}" stroke="${GRID}"/><text x="${L - 8}" y="${py(v) + 4}" text-anchor="end" font-size="13" fill="${MUT}">${v}</text>`);
+  const cy = (T + H - B) / 2;
+  o.push(`<text x="14" y="${cy}" font-size="13" fill="${INK}" text-anchor="middle" transform="rotate(-90 14 ${cy})">Days left before failure</text>`);
+  [0, Math.floor(n / 3), Math.floor(2 * n / 3), n - 1].forEach(i => o.push(`<text x="${px(i)}" y="${H - B + 18}" text-anchor="middle" font-size="13" fill="${MUT}">${i + 1}</text>`));
+  o.push(`<text x="${(L + W - R) / 2}" y="${H - B + 40}" font-size="13" fill="${INK}" text-anchor="middle">Day of the ${n}-day history</text>`);
+  if (split && split < n) {
+    const sx = px(split - 0.5);
+    o.push(`<line x1="${sx}" x2="${sx}" y1="${T}" y2="${H - B}" stroke="${MUT}" stroke-width="1.5" stroke-dasharray="4 3"/>`);
+    o.push(`<text x="${sx + 8}" y="${T + 16}" font-size="12" fill="${MUT}">Test period: days ${split + 1} to ${n}</text><text x="${L + 8}" y="${T + 16}" font-size="12" fill="${MUT}">Model trained on days 1 to ${split}</text>`);
+  }
+  const line = (key, stroke, w, dash) => {
+    const pts = days.map((d, i) => d[key] == null ? null : `${px(i)},${py(d[key])}`).filter(Boolean).join(" ");
+    return `<polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="${w}"${dash ? ` stroke-dasharray="${dash}"` : ""}/>`;
+  };
+  o.push(line("true_days_left", INK, 2.5), line("predicted_days_left", RED, 2, "6 3"), "</svg>");
+  return o.join("");
+}
+
+/* ---------- Dashboard ---------- */
+async function loadDash() {
+  const tiles = $("tiles");
+  let ms = [];
+  try { ms = await getMachines(); } catch (e) { tiles.innerHTML = `<p class="note">Cannot reach the API at ${esc(API_BASE)}.</p>`; return; }
+  const g = ms.map(group), act = g.filter(x => x === "act").length, plan = g.filter(x => x === "plan").length;
+  const tile = (l, v, s) => `<div class="tile"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s || ""}</div></div>`;
+  let e = null;
+  try { e = await api("/energy"); } catch (err) { e = null; }
+  tiles.innerHTML = tile("Machines needing attention", `${act + plan} of ${ms.length}`, `${g.filter(x => x === "ok").length} running normally`)
+    + (e ? tile("Energy cost, last 24 hours", eur(e.cost_24h_eur), "consumers only") + tile("Energy cost, last 30 days", eur(e.cost_30d_eur), e.hours_covered < 700 ? `consumers only, ${e.hours_covered} hours of data` : "consumers only")
+         : tile("Energy cost", "n/a", "price data not loaded yet"));
+  if (!e) { for (const id of ["c-price", "c-cost", "c-machines"]) $(id).innerHTML = unavailable("Energy data"); return; }
+  const hrs = e.hours || [], labels = hrs.map(h => h.label), price = hrs.map(h => h.price_eur_mwh), cost = hrs.map(h => h.cost_eur);
+  const ap = axis(price), ac = axis(cost);
+  $("c-price").innerHTML = barsSvg(price, labels, ap.ymax, highFrom(price), "Day-ahead electricity price per hour, euros per megawatt hour", ap.ymin);
+  $("c-cost").innerHTML = barsSvg(cost, labels, ac.ymax, highFrom(cost), "Plant energy cost per hour, euros", ac.ymin);
+  $("c-machines").innerHTML = machineBars(e.machines || []);
+}
+
+/* ---------- Maintenance board ---------- */
+async function loadBoard() {
+  const cols = $("cols");
+  let ms;
+  try { ms = await getMachines(); } catch (e) { cols.innerHTML = `<p class="note">Cannot reach the API at ${esc(API_BASE)}.</p>`; return; }
+  const defs = [["act", "Act this week"], ["plan", "Plan maintenance"], ["watch", "Watch"]];
+  cols.innerHTML = defs.map(([k, lab]) => {
+    const list = ms.filter(m => group(m) === k).sort((a, b) => (extra[a.machine_id]?.predicted_rul_days ?? 999) - (extra[b.machine_id]?.predicted_rul_days ?? 999));
+    const cards = list.map(m => {
+      const x = extra[m.machine_id] || {};
+      const rep = x.last_failure_days_ago != null ? `<small>Repaired ${x.last_failure_days_ago} days ago</small>` : (x.machine_id ? `<small>No failure in the last 30 days</small>` : "");
+      const d = x.predicted_rul_days != null ? `<span>${x.predicted_rul_days.toFixed(1)}</span><small>days left</small>` : "";
+      return `<button class="mcard" data-id="${esc(m.machine_id)}" aria-pressed="false"><div><b>${esc(m.machine_id)}</b><small>${esc(reason(m))}</small>${rep}</div><div class="d">${d}</div></button>`;
+    }).join("") || `<p class="note">None.</p>`;
+    return `<div class="col ${k}"><h3><span>${lab}</span><span>${list.length}</span></h3>${cards}</div>`;
+  }).join("");
+  cols.querySelectorAll(".mcard").forEach(b => b.addEventListener("click", () => selectMachine(b.dataset.id)));
+  const first = cols.querySelector(".mcard");
+  if (first) selectMachine(first.dataset.id);
+}
+async function selectMachine(id) {
+  document.querySelectorAll(".mcard").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === id)));
+  const m = machines.find(x => x.machine_id === id), x = extra[id] || {}, box = $("detail");
+  const k = group(m), label = {act: "Act this week", plan: "Plan maintenance", watch: "Watch"}[k] || "Normal";
+  const col = k === "act" ? RED : k === "plan" ? AMB : MUT;
+  let txt = `<div class="txt"><div style="font-size:20px;font-weight:600">${esc(id)} <span style="color:${col};font-size:16px;padding-left:10px">${label}</span></div>`
+    + (x.last_failure_days_ago != null ? `<div>Repaired ${x.last_failure_days_ago} days ago.</div>` : (x.machine_id ? `<div>No failure in the last 30 days.</div>` : ""))
+    + `<div>Rule: ${esc(reason(m, true))}.</div>`
+    + (x.predicted_rul_days != null ? `<div>Model: ${x.predicted_rul_days.toFixed(1)} days left.</div>` : "")
+    + `<div class="note">Vibration ${Number(m.avg_vibration).toFixed(1)}. Temperature ${Number(m.avg_temp).toFixed(0)} °C. Power ${Number(m.avg_power_usage).toFixed(0)} kW (24 h average).</div></div>`;
+  box.innerHTML = `<div class="detail">${txt}<div class="chart"><p class="note">Loading history</p></div></div>`;
+  const chart = box.querySelector(".chart");
+  try {
+    const h = await api("/machines/" + encodeURIComponent(id) + "/history");
+    if (!(h.days || []).length) { chart.innerHTML = unavailable("History"); return; }
+    chart.innerHTML = `<h2 style="margin:0 0 4px;font-size:17px">How many days the machine has left</h2><p class="sub">Black line: the true value in the simulation. Red dashed line: what the model estimated each day. The model looks at most 7 days ahead. The closer the lines, the better the model.</p>${historyChart(h)}<div class="legend"><span><i></i>True days left</span><span><i class="p"></i>Model estimate</span></div>`;
+  } catch (e) { chart.innerHTML = unavailable("History"); }
+}
+
+/* ---------- AI Query ---------- */
+const CHIPS = ["Which machines need maintenance?", "Which compressor uses the most power?", "How is PUMP_02 doing?", "Which machines are running hot?", "What did the plant use yesterday?"];
+function initAI() {
+  $("chips").innerHTML = CHIPS.map(c => `<button class="chip" type="button">${esc(c)}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { $("q").value = b.textContent; ask(); }));
+  $("askform").addEventListener("submit", ev => { ev.preventDefault(); ask(); });
+}
+function rowsTable(rows) {
+  if (!rows || !rows.length) return "";
+  const cols = Object.keys(rows[0]);
+  return `<div class="tw"><table><thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${cols.map(c => `<td>${esc(r[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+async function ask() {
+  const q = $("q").value.trim();
+  if (!q) return;
+  const btn = $("askbtn"); btn.disabled = true; btn.textContent = "Asking";
+  const card = document.createElement("div");
+  card.className = "panel qa";
+  card.innerHTML = `<div class="q">${esc(q)}</div><p class="a">Working on it</p>`;
+  $("answers").prepend(card);
+  try {
+    const r = await api("/query", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({question: q})});
+    const sqls = r.sql_queries_used || [], rows = r.rows || [];
+    let more = "";
+    if (sqls.length || rows.length)
+      more = `<details><summary>How this was answered</summary>${sqls.length ? `<p class="sub">Database query</p><pre class="sql">${esc(sqls[sqls.length - 1])}</pre>` : ""}${rows.length ? `<p class="sub">${rows.length} row${rows.length === 1 ? "" : "s"} returned</p>${rowsTable(rows)}` : ""}</details>`;
+    card.innerHTML = `<div class="q">${esc(q)}</div><p class="a">${esc(r.answer)}</p>${more}`;
+    $("q").value = "";
+  } catch (e) {
+    card.classList.add("err");
+    card.innerHTML = `<div class="q">${esc(q)}</div><p class="a">${esc(e.status === 429 ? "Too many questions. Wait a minute and try again." : "The question could not be answered: " + e.message)}</p>`;
+  } finally { btn.disabled = false; btn.textContent = "Ask"; }
+}
+
+/* ---------- Pipeline Health ---------- */
+async function loadHealth() {
+  const box = $("health");
+  try {
+    const h = await api("/pipeline/health");
+    const dq = h.data_quality || {}, br = h.breakdown;
+    const kv = (k, v) => `<div class="tile"><div class="l">${esc(k)}</div><div class="v" style="font-size:24px">${esc(v)}</div></div>`;
+    const label = f => { const t = String(f).replace(/_/g, " ").toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); };
+    const items = Array.isArray(br) ? br.map(r => [r.quality_flag, r.count]) : (br && typeof br === "object" ? Object.entries(br) : []);
+    const brTxt = items.map(([k, v]) => kv(label(k), v)).join("");
+    box.innerHTML = `<div class="tiles">
+      <div class="tile"><div class="l">Data quality score</div><div class="score">${esc(h.health_score_percent)}%</div><div class="s">${esc(h.status)}</div></div>
+      ${kv("Rows checked", dq.rows)}${kv("Missing values", dq.null_rows)}${kv("Duplicates", dq.duplicate_rows)}${kv("Out of range", dq.out_of_range_rows)}</div>
+      <div class="panel"><h2>Machine events</h2><p class="sub">Events are not data errors. They are what the machines did.</p><div class="kv">${brTxt}${kv("Event rate", (h.event_rate_percent ?? "") + "%")}</div></div>
+      <div class="note">Latest reading: ${esc(dq.latest_reading)}</div>`;
+  } catch (e) { box.innerHTML = `<p class="note">Cannot reach the API at ${esc(API_BASE)}.</p>`; }
+}
+
+showPage("dash");
 </script>
 </body>
 </html>
-```
