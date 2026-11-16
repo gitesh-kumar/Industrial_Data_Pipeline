@@ -93,12 +93,71 @@ def ask_factory(question: str) -> dict:
     return result
 
 
+PAGE = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Factory data MCP server</title>
+<style>
+body{font:16px/1.55 system-ui,sans-serif;max-width:760px;margin:2.5rem auto;padding:0 1rem;color:#1b1f23}
+h1{font-size:1.5rem;margin:0 0 .4rem} h2{font-size:1.05rem;margin:2rem 0 .5rem}
+code,pre,textarea{font:13.5px/1.5 ui-monospace,Consolas,monospace}
+code{background:#eef0f2;padding:.1rem .3rem;border-radius:3px}
+pre{background:#14181c;color:#e6e9ec;padding:.9rem;border-radius:6px;overflow:auto;max-height:340px;white-space:pre-wrap;word-break:break-word}
+textarea{width:100%;box-sizing:border-box;padding:.6rem;border:1px solid #b9c0c7;border-radius:6px}
+button{font:inherit;padding:.45rem .9rem;margin:.3rem .4rem .3rem 0;border:1px solid #1b1f23;background:#fff;border-radius:6px;cursor:pointer}
+button:hover{background:#1b1f23;color:#fff}
+.small{color:#566069;font-size:.92rem}
+</style></head><body>
+<h1>Factory data MCP server</h1>
+<p>This is a live <a href="https://modelcontextprotocol.io">Model Context Protocol</a> server for a simulated factory with 17 machines.
+An MCP client such as Claude Desktop connects to <code id="url"></code> and can then call the tools below.
+The data is simulated and every tool is read-only. Each query passes a SQL guard that opens the database read-only and allows a single SELECT.</p>
+<h2>Try it</h2>
+<p class="small">The buttons send real MCP requests (JSON-RPC over HTTP) from your browser to this server. The black box shows the request and the answer.</p>
+<button id="b1">1. List the tools</button>
+<button id="b2">2. Describe the database</button>
+<button id="b3">3. Run the query below</button>
+<button id="b4">4. Try to delete data</button>
+<textarea id="q" rows="3">SELECT machine_id, machine_type, max_temp, temp_warn_c, efficiency_status FROM gold_operations_status ORDER BY max_temp DESC LIMIT 5</textarea>
+<pre id="out">Press a button.</pre>
+<h2>Connect your own client</h2>
+<p>Add this address as a remote MCP server (transport: Streamable HTTP): <code id="url2"></code></p>
+<script>
+const URL_ = location.origin + "/mcp";
+document.getElementById("url").textContent = URL_; document.getElementById("url2").textContent = URL_;
+const out = document.getElementById("out"); let n = 0;
+async function rpc(method, params) {
+  const body = {jsonrpc: "2.0", id: ++n, method: method, params: params || {}};
+  out.textContent = "Sending...\\n" + JSON.stringify(body, null, 2);
+  try {
+    const r = await fetch("/mcp", {method: "POST", body: JSON.stringify(body),
+      headers: {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}});
+    let t = await r.text();
+    const m = t.match(/^data: (.*)$/m); if (m) t = m[1];
+    try { t = JSON.stringify(JSON.parse(t), null, 2); } catch (e) {}
+    out.textContent = "REQUEST\\n" + JSON.stringify(body, null, 2) + "\\n\\nRESPONSE (HTTP " + r.status + ")\\n" + t;
+  } catch (e) { out.textContent = "Request failed: " + e; }
+}
+const call = (name, args) => rpc("tools/call", {name: name, arguments: args});
+document.getElementById("b1").onclick = () => rpc("tools/list");
+document.getElementById("b2").onclick = () => call("describe_database", {});
+document.getElementById("b3").onclick = () => call("run_sql", {query: document.getElementById("q").value});
+document.getElementById("b4").onclick = () => call("run_sql", {query: "DELETE FROM gold_operations_status"});
+</script></body></html>"""
+
+
+@server.custom_route("/", methods=["GET"])
+async def home(request):
+    from starlette.responses import HTMLResponse
+    return HTMLResponse(PAGE)
+
+
 if WITH_ASK:
     server.tool(annotations=READ_ONLY)(ask_factory)
 
 
 if __name__ == "__main__":
     if HTTP:          # Railway: a web server on a URL, e.g. https://<app>.up.railway.app/mcp
-        server.run("streamable-http", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))
+        server.run("streamable-http", host="0.0.0.0", port=int(os.getenv("PORT", "8000")),
+                   stateless_http=True, json_response=True)   # no session handshake, so the page above can call it
     else:             # stdio: the host starts this program and talks to it through its input and output
         server.run()
